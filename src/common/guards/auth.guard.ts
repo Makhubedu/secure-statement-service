@@ -1,1 +1,0 @@
-// SuperTokens auth guard
