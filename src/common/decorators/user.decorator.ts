@@ -1,1 +1,0 @@
-// User extraction decorator

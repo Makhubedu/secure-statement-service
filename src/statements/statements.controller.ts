@@ -12,9 +12,10 @@ import {
   ParseUUIDPipe,
   Req,
   BadRequestException,
+  UseGuards,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiTags, ApiOperation, ApiResponse, ApiConsumes, ApiBody } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiConsumes, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { StatementsService } from './statements.service';
 import {
@@ -25,10 +26,13 @@ import {
   DownloadLogResponseDto,
   BaseResponseDto,
 } from '../common/dto';
-import { PdfFile } from '../common/decorators';
+import { AuthGuard, RolesGuard, Roles } from '../auth';
 
 @ApiTags('Statements')
 @Controller('statements')
+@UseGuards(AuthGuard, RolesGuard)
+@Roles('admin')
+@ApiBearerAuth('JWT-auth')
 export class StatementsController {
   constructor(private readonly statementsService: StatementsService) {}
 
@@ -37,7 +41,7 @@ export class StatementsController {
   @UseInterceptors(FileInterceptor('file'))
   @ApiOperation({ 
     summary: 'Upload a PDF statement',
-    description: 'Admin endpoint to upload PDF statements for customers'
+    description: 'Admin endpoint to upload PDF statements for users'
   })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -49,10 +53,10 @@ export class StatementsController {
           format: 'binary',
           description: 'PDF file to upload'
         },
-        customerId: {
+        userId: {
           type: 'string',
           format: 'uuid',
-          description: 'Customer ID who owns this statement'
+          description: 'User ID who owns this statement'
         },
         statementPeriod: {
           type: 'string',
@@ -72,7 +76,7 @@ export class StatementsController {
           description: 'User who uploaded the statement (optional)'
         }
       },
-      required: ['file', 'customerId', 'statementPeriod', 'statementDate']
+      required: ['file', 'userId', 'statementPeriod', 'statementDate']
     }
   })
   @ApiResponse({
@@ -139,23 +143,23 @@ export class StatementsController {
     );
   }
 
-  @Get('customer/:customerId')
+  @Get('user/:userId')
   @ApiOperation({
-    summary: 'Get statements by customer',
-    description: 'Retrieve all statements for a specific customer'
+    summary: 'Get statements by user',
+    description: 'Retrieve all statements for a specific user'
   })
   @ApiResponse({
     status: 200,
-    description: 'Customer statements retrieved successfully',
+    description: 'User statements retrieved successfully',
     type: BaseResponseDto<StatementResponseDto[]>
   })
-  async getStatementsByCustomer(
-    @Param('customerId', ParseUUIDPipe) customerId: string,
+  async getStatementsByUser(
+    @Param('userId', ParseUUIDPipe) userId: string,
   ): Promise<BaseResponseDto<StatementResponseDto[]>> {
-    const statements = await this.statementsService.getStatementsByCustomer(customerId);
+    const statements = await this.statementsService.getStatementsByUser(userId);
     
     return BaseResponseDto.success(
-      `Found ${statements.length} statements for customer`,
+      `Found ${statements.length} statements for user`,
       statements
     );
   }

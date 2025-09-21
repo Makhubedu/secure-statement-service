@@ -10,11 +10,11 @@ export class GenerateDownloadLinkDto {
   statementId: string;
 
   @ApiProperty({
-    description: 'Customer ID requesting the download (for authorization)',
+    description: 'User ID requesting the download (for authorization)',
     example: '123e4567-e89b-12d3-a456-426614174000'
   })
-  @IsUUID(4, { message: 'Customer ID must be a valid UUID' })
-  customerId: string;
+  @IsUUID(4, { message: 'User ID must be a valid UUID' })
+  userId: string;
 
   @ApiProperty({
     description: 'IP address of the requester (for audit)',

@@ -4,6 +4,7 @@ import { StatementsModule } from './statements/statements.module';
 import { StorageModule } from './storage/storage.module';
 import { HealthModule } from './health/health.module';
 import { DatabaseModule } from './database/database.module';
+import { AuthModule } from './auth/auth.module';
 import { appConfig, databaseConfig, storageConfig } from './config';
 
 @Module({
@@ -13,6 +14,7 @@ import { appConfig, databaseConfig, storageConfig } from './config';
       load: [appConfig, databaseConfig, storageConfig],
       envFilePath: ['.env.dev', '.env'],
     }),
+    AuthModule.forRoot(),
     DatabaseModule,
     StatementsModule,
     StorageModule,

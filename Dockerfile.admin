@@ -1,0 +1,20 @@
+# Admin Setup Dockerfile
+FROM node:18-alpine
+
+# Install required packages
+RUN apk add --no-cache curl
+
+# Set working directory
+WORKDIR /app
+
+# Create package.json for SuperTokens SDK
+RUN echo '{"name":"admin-setup","version":"1.0.0","dependencies":{"supertokens-node":"^23.0.1"}}' > package.json
+
+# Install dependencies
+RUN npm install
+
+# Copy the admin creation script
+COPY scripts/create-admin.js /app/create-admin.js
+
+# Set the entrypoint
+CMD ["node", "create-admin.js"]

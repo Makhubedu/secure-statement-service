@@ -1,6 +1,6 @@
 import { registerAs } from '@nestjs/config';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
-import { Customer, Statement, DownloadLog } from '../common/entities';
+import { Statement, DownloadLog } from '../common/entities';
 
 export default registerAs(
   'database',
@@ -11,7 +11,7 @@ export default registerAs(
     username: process.env.DB_USERNAME!,
     password: process.env.DB_PASSWORD!,
     database: process.env.DB_DATABASE!,
-    entities: [Customer, Statement, DownloadLog],
+    entities: [Statement, DownloadLog],
     synchronize: process.env.DB_SYNCHRONIZE === 'true',
     logging: process.env.DB_LOGGING === 'true',
     retryAttempts: parseInt(process.env.DB_RETRY_ATTEMPTS!, 10),

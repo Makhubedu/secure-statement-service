@@ -1,6 +1,5 @@
-import { Entity, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
+import { Entity, Column, OneToMany } from 'typeorm';
 import { BaseEntity } from './base.entity';
-import { Customer } from './customer.entity';
 import { StatementStatus } from '../enums';
 import { DownloadLog } from './download-log.entity';
 
@@ -41,16 +40,10 @@ export class Statement extends BaseEntity {
   downloadCount: number;
 
   @Column({ nullable: true })
-  uploadedBy: string;
-
-  @ManyToOne(() => Customer, (customer) => customer.statements, {
-    onDelete: 'CASCADE',
-  })
-  @JoinColumn({ name: 'customerId' })
-  customer: Customer;
+  uploadedBy: string; // SuperTokens admin userId who uploaded
 
   @Column()
-  customerId: string;
+  userId: string; // SuperTokens userId of the statement owner/consumer
 
   @OneToMany(() => DownloadLog, (downloadLog) => downloadLog.statement)
   downloadLogs: DownloadLog[];

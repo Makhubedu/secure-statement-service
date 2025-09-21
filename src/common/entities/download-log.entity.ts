@@ -15,6 +15,9 @@ export class DownloadLog extends BaseEntity {
   statementId: string;
 
   @Column()
+  userId: string; // SuperTokens userId who downloaded
+
+  @Column()
   ipAddress: string;
 
   @Column({ nullable: true })

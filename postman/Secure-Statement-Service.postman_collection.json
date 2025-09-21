@@ -1,0 +1,406 @@
+{
+  "info": {
+    "name": "Secure Statement Service API",
+    "description": "Complete API collection for the Secure Statement Service with SuperTokens authentication",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auto-add front-token header if available",
+          "if (pm.environment.get('frontToken')) {",
+          "    pm.request.headers.add({",
+          "        key: 'front-token',",
+          "        value: pm.environment.get('frontToken')",
+          "    });",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login (Sign In)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Extract tokens from response headers and save to environment",
+                  "if (pm.response.code === 200) {",
+                  "    const accessToken = pm.response.headers.get('st-access-token');",
+                  "    const frontToken = pm.response.headers.get('front-token');",
+                  "    const refreshToken = pm.response.headers.get('st-refresh-token');",
+                  "    ",
+                  "    if (accessToken) {",
+                  "        pm.environment.set('accessToken', accessToken);",
+                  "        console.log('✅ Access token saved to environment');",
+                  "    }",
+                  "    ",
+                  "    if (frontToken) {",
+                  "        pm.environment.set('frontToken', frontToken);",
+                  "        console.log('✅ Front token saved to environment');",
+                  "    }",
+                  "    ",
+                  "    if (refreshToken) {",
+                  "        pm.environment.set('refreshToken', refreshToken);",
+                  "        console.log('✅ Refresh token saved to environment');",
+                  "    }",
+                  "    ",
+                  "    const responseJson = pm.response.json();",
+                  "    if (responseJson.user && responseJson.user.id) {",
+                  "        pm.environment.set('userId', responseJson.user.id);",
+                  "        console.log('✅ User ID saved to environment');",
+                  "    }",
+                  "    ",
+                  "    pm.test('Login successful', function () {",
+                  "        pm.expect(responseJson.status).to.eql('OK');",
+                  "    });",
+                  "} else {",
+                  "    pm.test('Login failed', function () {",
+                  "        pm.expect(pm.response.code).to.not.eql(200);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"formFields\": [\n    {\n      \"id\": \"email\",\n      \"value\": \"{{adminEmail}}\"\n    },\n    {\n      \"id\": \"password\",\n      \"value\": \"{{adminPassword}}\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/signin",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "signin"]
+            },
+            "description": "Login with email and password. Automatically extracts and saves authentication tokens."
+          }
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "front-token",
+                "value": "{{frontToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "me"]
+            },
+            "description": "Get current authenticated user information including roles."
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "front-token",
+                "value": "{{frontToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout"]
+            },
+            "description": "Logout and invalidate session tokens."
+          }
+        }
+      ],
+      "description": "Authentication endpoints for login, logout, and user management."
+    },
+    {
+      "name": "Statements",
+      "item": [
+        {
+          "name": "Upload Statement",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Extract statement ID from response and save to environment",
+                  "if (pm.response.code === 201) {",
+                  "    const responseJson = pm.response.json();",
+                  "    if (responseJson.success && responseJson.data && responseJson.data.id) {",
+                  "        pm.environment.set('statementId', responseJson.data.id);",
+                  "        console.log('✅ Statement ID saved to environment:', responseJson.data.id);",
+                  "    }",
+                  "    ",
+                  "    pm.test('Statement uploaded successfully', function () {",
+                  "        pm.expect(responseJson.success).to.eql(true);",
+                  "        pm.expect(responseJson.data).to.have.property('id');",
+                  "    });",
+                  "} else {",
+                  "    pm.test('Upload failed', function () {",
+                  "        pm.expect(pm.response.code).to.not.eql(201);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "front-token",
+                "value": "{{frontToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": [],
+                  "description": "PDF file to upload"
+                },
+                {
+                  "key": "userId",
+                  "value": "{{userId}}",
+                  "type": "text",
+                  "description": "User ID who owns this statement (UUID format)"
+                },
+                {
+                  "key": "statementPeriod",
+                  "value": "2024-03",
+                  "type": "text",
+                  "description": "Statement period in YYYY-MM format (e.g., 2024-03)"
+                },
+                {
+                  "key": "statementDate",
+                  "value": "2024-03-31T00:00:00.000Z",
+                  "type": "text",
+                  "description": "Statement date in ISO format"
+                },
+                {
+                  "key": "uploadedBy",
+                  "value": "{{adminEmail}}",
+                  "type": "text",
+                  "description": "User who uploaded the statement (optional)"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/statements/upload",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "statements", "upload"]
+            },
+            "description": "Upload a statement file for processing."
+          }
+        },
+        {
+          "name": "Download Statement",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "front-token",
+                "value": "{{frontToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"statementId\": \"{{statementId}}\",\n  \"userId\": \"{{userId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/statements/download",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "statements", "download"]
+            },
+            "description": "Download a processed statement file."
+          }
+        },
+        {
+          "name": "Get User Statements",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "front-token",
+                "value": "{{frontToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/statements/user/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "statements", "user", "{{userId}}"]
+            },
+            "description": "Get all statements for a specific user."
+          }
+        },
+        {
+          "name": "Get Statement by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "front-token",
+                "value": "{{frontToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/statements/{{statementId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "statements", "{{statementId}}"]
+            },
+            "description": "Get details of a specific statement by ID."
+          }
+        },
+        {
+          "name": "Get Statement Download Logs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "front-token",
+                "value": "{{frontToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/statements/{{statementId}}/download-logs",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "statements", "{{statementId}}", "download-logs"]
+            },
+            "description": "Get download logs and audit trail for a statement."
+          }
+        }
+      ],
+      "description": "Statement management endpoints for upload, download, and retrieval."
+    },
+    {
+      "name": "Health Check",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "health"]
+            },
+            "description": "Check API health status."
+          }
+        },
+        {
+          "name": "Readiness Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/health/ready",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "health", "ready"]
+            },
+            "description": "Check if API is ready to accept requests."
+          }
+        },
+        {
+          "name": "Liveness Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/health/live",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "health", "live"]
+            },
+            "description": "Check if API is alive and responding."
+          }
+        }
+      ],
+      "description": "Health check endpoints for monitoring API status."
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    }
+  ]
+}

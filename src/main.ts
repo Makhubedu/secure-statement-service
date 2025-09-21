@@ -1,5 +1,5 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { RequestMethod, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
@@ -14,7 +14,8 @@ async function bootstrap() {
   app.enableCors({
     origin: corsOrigins,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'front-token'],
+    exposedHeaders: ['front-token', 'st-access-token', 'st-refresh-token'],
   });
 
   // Global validation pipe
@@ -32,17 +33,30 @@ async function bootstrap() {
   // Global exception filter
   app.useGlobalFilters(new GlobalExceptionFilter());
 
-  // Global prefix for all routes
-  app.setGlobalPrefix('api/v1');
+  // Global prefix for all routes (exclude SuperTokens routes)
+  app.setGlobalPrefix('api/v1', {
+    exclude: [{ path: 'auth/(.*)', method: RequestMethod.ALL }],
+  });
 
   // Swagger API Documentation
   const config = new DocumentBuilder()
     .setTitle('Secure Statement Service')
     .setDescription('API for secure PDF statement delivery with time-limited download links')
     .setVersion('1.0')
+    .addTag('Authentication', 'User authentication and session management')
     .addTag('Statements', 'Statement management operations')
-    .addTag('Customers', 'Customer management operations')
     .addTag('Health', 'Health check operations')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'JWT',
+        description: 'Enter JWT token from /auth/signin response header (st-access-token)',
+        in: 'header',
+      },
+      'JWT-auth', // This name here is important for matching up with @ApiBearerAuth() in your controller!
+    )
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

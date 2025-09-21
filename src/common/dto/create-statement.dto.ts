@@ -3,11 +3,11 @@ import { IsString, IsUUID, IsOptional, IsDateString, Matches } from 'class-valid
 
 export class CreateStatementDto {
   @ApiProperty({ 
-    description: 'Customer ID who owns this statement',
+    description: 'User ID who owns this statement',
     example: '123e4567-e89b-12d3-a456-426614174000'
   })
-  @IsUUID(4, { message: 'Customer ID must be a valid UUID' })
-  customerId: string;
+  @IsUUID(4, { message: 'User ID must be a valid UUID' })
+  userId: string;
 
   @ApiProperty({
     description: 'Statement period in YYYY-MM format',

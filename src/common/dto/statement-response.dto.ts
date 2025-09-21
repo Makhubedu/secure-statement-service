@@ -32,8 +32,8 @@ export class StatementResponseDto {
   @ApiProperty({ description: 'Who uploaded the statement', required: false })
   uploadedBy?: string;
 
-  @ApiProperty({ description: 'Customer ID who owns this statement' })
-  customerId: string;
+  @ApiProperty({ description: 'User ID who owns this statement' })
+  userId: string;
 
   @ApiProperty({ description: 'When the statement was created' })
   createdAt: string;

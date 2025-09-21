@@ -8,8 +8,8 @@ export class DownloadLogResponseDto {
   @ApiProperty({ description: 'Statement ID that was downloaded' })
   statementId: string;
 
-  @ApiProperty({ description: 'Customer ID who downloaded' })
-  customerId: string;
+  @ApiProperty({ description: 'User ID who downloaded' })
+  userId: string;
 
   @ApiProperty({ enum: DownloadStatus, description: 'Status of the download attempt' })
   status: DownloadStatus;

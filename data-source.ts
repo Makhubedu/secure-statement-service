@@ -1,5 +1,5 @@
 import { DataSource } from 'typeorm';
-import { Customer, Statement, DownloadLog } from './src/common/entities';
+import { Statement, DownloadLog } from './src/common/entities';
 import * as dotenv from 'dotenv';
 
 // Load environment variables
@@ -14,7 +14,7 @@ export const AppDataSource = new DataSource({
   database: process.env.DB_DATABASE!,
   synchronize: process.env.DB_SYNCHRONIZE === 'true' || false,
   logging: process.env.DB_LOGGING === 'true' || false,
-  entities: [Customer, Statement, DownloadLog],
+  entities: [Statement, DownloadLog],
   migrations: ['src/database/migrations/*.ts'],
   migrationsTableName: 'migration_table',
 });

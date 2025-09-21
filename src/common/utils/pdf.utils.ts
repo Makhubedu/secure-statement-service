@@ -20,8 +20,8 @@ export class PdfUtils {
   /**
    * Generate storage path for MinIO
    */
-  static generateStoragePath(customerId: string, period: string, fileName: string): string {
-    return `statements/${customerId}/${period}/${fileName}`;
+  static generateStoragePath(userId: string, period: string, fileName: string): string {
+    return `statements/${userId}/${period}/${fileName}`;
   }
 
   /**

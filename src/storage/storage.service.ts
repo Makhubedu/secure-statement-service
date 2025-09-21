@@ -60,7 +60,7 @@ export class StorageService implements OnModuleInit {
 
   async uploadPdf(
     file: Express.Multer.File,
-    customerId: string,
+    userId: string,
     statementPeriod: string,
   ): Promise<{ fileName: string; storagePath: string }> {
     // Validate PDF file
@@ -70,7 +70,7 @@ export class StorageService implements OnModuleInit {
 
     // Generate unique filename and storage path
     const fileName = PdfUtils.generatePdfFileName();
-    const storagePath = PdfUtils.generateStoragePath(customerId, statementPeriod, fileName);
+    const storagePath = PdfUtils.generateStoragePath(userId, statementPeriod, fileName);
 
     try {
       // Upload to MinIO using AWS SDK v3
@@ -81,7 +81,7 @@ export class StorageService implements OnModuleInit {
         ContentType: PDF_CONSTANTS.MIME_TYPE,
         Metadata: {
           'original-name': file.originalname,
-          'customer-id': customerId,
+          'user-id': userId,
           'statement-period': statementPeriod,
         },
       });

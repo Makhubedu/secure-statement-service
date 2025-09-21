@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { StorageService } from '../storage/storage.service';
-import { Statement, DownloadLog, Customer } from '../common/entities';
+import { Statement, DownloadLog } from '../common/entities';
 import { StatementStatus, DownloadStatus } from '../common/enums';
 import { PDF_CONSTANTS } from '../common/constants';
 import { PdfUtils } from '../common/utils';
@@ -24,8 +24,6 @@ export class StatementsService {
     private statementRepository: Repository<Statement>,
     @InjectRepository(DownloadLog)
     private downloadLogRepository: Repository<DownloadLog>,
-    @InjectRepository(Customer)
-    private customerRepository: Repository<Customer>,
     private storageService: StorageService,
     private configService: ConfigService,
   ) {}
@@ -34,15 +32,7 @@ export class StatementsService {
     createStatementDto: CreateStatementDto,
     file: Express.Multer.File,
   ): Promise<StatementResponseDto> {
-    this.logger.log(`Uploading statement for customer: ${createStatementDto.customerId}`);
-
-    // Verify customer exists
-    const customer = await this.customerRepository.findOne({
-      where: { id: createStatementDto.customerId },
-    });
-    if (!customer) {
-      throw new NotFoundException('Customer not found');
-    }
+    this.logger.log(`Uploading statement for user: ${createStatementDto.userId}`);
 
     // Validate file
     if (!file) {
@@ -52,13 +42,13 @@ export class StatementsService {
     // Check for duplicate statement
     const existingStatement = await this.statementRepository.findOne({
       where: {
-        customerId: createStatementDto.customerId,
+        userId: createStatementDto.userId,
         statementPeriod: createStatementDto.statementPeriod,
       },
     });
     if (existingStatement) {
       throw new BadRequestException(
-        `Statement for period ${createStatementDto.statementPeriod} already exists for this customer`
+        `Statement for period ${createStatementDto.statementPeriod} already exists for this user`
       );
     }
 
@@ -66,7 +56,7 @@ export class StatementsService {
       // Upload to storage
       const { fileName, storagePath } = await this.storageService.uploadPdf(
         file,
-        createStatementDto.customerId,
+        createStatementDto.userId,
         createStatementDto.statementPeriod,
       );
 
@@ -83,7 +73,7 @@ export class StatementsService {
         expiresAt: PdfUtils.generateExpiryDate(),
         downloadCount: 0,
         uploadedBy: createStatementDto.uploadedBy,
-        customerId: createStatementDto.customerId,
+        userId: createStatementDto.userId,
       });
 
       const savedStatement = await this.statementRepository.save(statement);
@@ -104,16 +94,15 @@ export class StatementsService {
     // Find statement
     const statement = await this.statementRepository.findOne({
       where: { id: generateDownloadDto.statementId },
-      relations: ['customer'],
     });
 
     if (!statement) {
       throw new NotFoundException('Statement not found');
     }
 
-    // Verify customer ownership
-    if (statement.customerId !== generateDownloadDto.customerId) {
-      throw new BadRequestException('Statement does not belong to this customer');
+    // Verify user ownership
+    if (statement.userId !== generateDownloadDto.userId) {
+      throw new BadRequestException('Statement does not belong to this user');
     }
 
     // Check if statement is downloadable
@@ -132,6 +121,7 @@ export class StatementsService {
       await this.logDownloadAttempt(
         statement.id,
         DownloadStatus.INITIATED,
+        generateDownloadDto.userId,
         generateDownloadDto.ipAddress,
         generateDownloadDto.userAgent,
       );
@@ -165,6 +155,7 @@ export class StatementsService {
       await this.logDownloadAttempt(
         statement.id,
         DownloadStatus.FAILED,
+        generateDownloadDto.userId,
         generateDownloadDto.ipAddress,
         generateDownloadDto.userAgent,
         error.message,
@@ -175,9 +166,9 @@ export class StatementsService {
     }
   }
 
-  async getStatementsByCustomer(customerId: string): Promise<StatementResponseDto[]> {
+  async getStatementsByUser(userId: string): Promise<StatementResponseDto[]> {
     const statements = await this.statementRepository.find({
-      where: { customerId },
+      where: { userId },
       order: { statementDate: 'DESC' },
     });
 
@@ -206,7 +197,7 @@ export class StatementsService {
     return logs.map(log => ({
       id: log.id,
       statementId: log.statementId,
-      customerId: log.statement.customerId, // Get from related statement
+      userId: log.userId, // Get from log directly
       status: log.status,
       ipAddress: log.ipAddress,
       userAgent: log.userAgent,
@@ -226,6 +217,7 @@ export class StatementsService {
   private async logDownloadAttempt(
     statementId: string,
     status: DownloadStatus,
+    userId?: string,
     ipAddress?: string,
     userAgent?: string,
     errorMessage?: string,
@@ -233,6 +225,7 @@ export class StatementsService {
     const downloadLog = this.downloadLogRepository.create({
       statementId,
       status,
+      userId,
       ipAddress: ipAddress || 'unknown',
       userAgent,
       errorMessage,
@@ -259,7 +252,7 @@ export class StatementsService {
         : undefined,
       downloadCount: statement.downloadCount,
       uploadedBy: statement.uploadedBy,
-      customerId: statement.customerId,
+      userId: statement.userId,
       createdAt: statement.createdAt instanceof Date 
         ? statement.createdAt.toISOString()
         : new Date(statement.createdAt).toISOString(),
