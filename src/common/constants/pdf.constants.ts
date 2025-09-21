@@ -4,7 +4,7 @@ export const PDF_CONSTANTS = {
   MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB in bytes
   MIN_FILE_SIZE: 1024, // 1KB minimum
   ALLOWED_MIME_TYPES: ['application/pdf'] as const,
-  DOWNLOAD_LINK_EXPIRY_HOURS: 24,
+  DOWNLOAD_LINK_EXPIRY_MINUTES: 5, // Default 5 minutes expiry
   MAX_DOWNLOADS_PER_STATEMENT: 5,
 } as const;
 

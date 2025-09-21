@@ -56,11 +56,19 @@ export class Statement extends BaseEntity {
   downloadLogs: DownloadLog[];
 
   get isExpired(): boolean {
-    return this.expiresAt && new Date() > this.expiresAt;
+    if (!this.expiresAt) return false;
+    const expiryDate = this.expiresAt instanceof Date ? this.expiresAt : new Date(this.expiresAt);
+    const now = new Date();
+    
+    return now > expiryDate;
   }
 
   get isDownloadable(): boolean {
-    return this.status === StatementStatus.AVAILABLE && !this.isExpired;
+    const downloadableStatuses = [StatementStatus.UPLOADED, StatementStatus.AVAILABLE];
+    const statusOk = downloadableStatuses.includes(this.status);
+    const notExpired = !this.isExpired;
+    
+    return statusOk && notExpired;
   }
 
   get isPdf(): boolean {

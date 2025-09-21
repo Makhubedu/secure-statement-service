@@ -17,6 +17,6 @@ export default registerAs(
     retryAttempts: 3,
     retryDelay: 3000,
     autoLoadEntities: true,
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+    ssl: false, // Disable SSL for Docker environments
   }),
 );

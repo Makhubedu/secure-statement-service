@@ -1,5 +1,5 @@
-# Use Node.js 18 Alpine as base image
-FROM node:18-alpine AS base
+# Use Node.js 20 Alpine as base image
+FROM node:20-alpine AS base
 
 # Set working directory
 WORKDIR /app
@@ -28,7 +28,7 @@ COPY . .
 RUN pnpm run build
 
 # Production stage
-FROM node:18-alpine AS production
+FROM node:20-alpine AS production
 
 # Create app directory
 WORKDIR /app
@@ -69,4 +69,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 
 # Start application with dumb-init
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["node", "dist/main"]
+CMD ["node", "--experimental-global-webcrypto", "dist/src/main"]

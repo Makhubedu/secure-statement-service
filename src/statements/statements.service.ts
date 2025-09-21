@@ -79,7 +79,7 @@ export class StatementsService {
         storagePath,
         statementDate: new Date(createStatementDto.statementDate),
         statementPeriod: createStatementDto.statementPeriod,
-        status: StatementStatus.UPLOADED,
+        status: StatementStatus.AVAILABLE, // Set to AVAILABLE immediately after successful upload
         expiresAt: PdfUtils.generateExpiryDate(),
         downloadCount: 0,
         uploadedBy: createStatementDto.uploadedBy,
@@ -125,7 +125,7 @@ export class StatementsService {
       // Generate signed URL
       const downloadUrl = await this.storageService.generateDownloadUrl(
         statement.storagePath,
-        PDF_CONSTANTS.DOWNLOAD_LINK_EXPIRY_HOURS,
+        PDF_CONSTANTS.DOWNLOAD_LINK_EXPIRY_MINUTES,
       );
 
       // Log download request
@@ -136,21 +136,20 @@ export class StatementsService {
         generateDownloadDto.userAgent,
       );
 
-      // Update statement status and download count
+      // Update download count
       await this.statementRepository.update(statement.id, {
-        status: StatementStatus.AVAILABLE,
         downloadCount: statement.downloadCount + 1,
       });
 
       const expiryDate = new Date();
-      expiryDate.setHours(expiryDate.getHours() + PDF_CONSTANTS.DOWNLOAD_LINK_EXPIRY_HOURS);
+      expiryDate.setMinutes(expiryDate.getMinutes() + PDF_CONSTANTS.DOWNLOAD_LINK_EXPIRY_MINUTES);
 
       this.logger.log(`Download link generated for statement: ${statement.id}`);
 
       return {
         downloadUrl,
         expiresAt: expiryDate.toISOString(),
-        expiresInSeconds: PDF_CONSTANTS.DOWNLOAD_LINK_EXPIRY_HOURS * 3600,
+        expiresInSeconds: PDF_CONSTANTS.DOWNLOAD_LINK_EXPIRY_MINUTES * 60,
         statement: {
           id: statement.id,
           fileName: statement.fileName,
@@ -249,14 +248,24 @@ export class StatementsService {
       originalFileName: statement.originalFileName,
       fileSizeBytes: statement.fileSizeBytes,
       statementPeriod: statement.statementPeriod,
-      statementDate: statement.statementDate.toISOString(),
+      statementDate: statement.statementDate instanceof Date 
+        ? statement.statementDate.toISOString()
+        : new Date(statement.statementDate).toISOString(),
       status: statement.status,
-      expiresAt: statement.expiresAt?.toISOString(),
+      expiresAt: statement.expiresAt 
+        ? (statement.expiresAt instanceof Date 
+          ? statement.expiresAt.toISOString()
+          : new Date(statement.expiresAt).toISOString())
+        : undefined,
       downloadCount: statement.downloadCount,
       uploadedBy: statement.uploadedBy,
       customerId: statement.customerId,
-      createdAt: statement.createdAt.toISOString(),
-      updatedAt: statement.updatedAt.toISOString(),
+      createdAt: statement.createdAt instanceof Date 
+        ? statement.createdAt.toISOString()
+        : new Date(statement.createdAt).toISOString(),
+      updatedAt: statement.updatedAt instanceof Date 
+        ? statement.updatedAt.toISOString()
+        : new Date(statement.updatedAt).toISOString(),
       isExpired: statement.isExpired,
       isDownloadable: statement.isDownloadable,
       fileSizeMB: statement.fileSizeMB,

@@ -57,9 +57,9 @@ export class PdfUtils {
   /**
    * Generate expiry date for download link
    */
-  static generateExpiryDate(hoursFromNow: number = PDF_CONSTANTS.DOWNLOAD_LINK_EXPIRY_HOURS): Date {
+  static generateExpiryDate(minutesFromNow: number = PDF_CONSTANTS.DOWNLOAD_LINK_EXPIRY_MINUTES): Date {
     const expiry = new Date();
-    expiry.setHours(expiry.getHours() + hoursFromNow);
+    expiry.setMinutes(expiry.getMinutes() + minutesFromNow);
     return expiry;
   }
 }

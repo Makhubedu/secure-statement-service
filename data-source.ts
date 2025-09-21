@@ -16,5 +16,5 @@ export const AppDataSource = new DataSource({
   logging: process.env.DB_LOGGING === 'true' || false,
   entities: [Customer, Statement, DownloadLog],
   migrations: ['src/database/migrations/*.ts'],
-  subscribers: ['src/database/subscribers/*.ts'],
+  migrationsTableName: 'migration_table',
 });
