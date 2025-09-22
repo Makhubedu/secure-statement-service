@@ -33,31 +33,7 @@ cd secure-statement-service
 cp .env.dev .env
 ```
 
-3. **Update environment variables in `.env`:**
-```bash
-# Database Configuration
-DATABASE_URL=postgresql://admin:password@postgres:5432/secure_statements
-
-# MinIO Storage Configuration  
-MINIO_ENDPOINT=minio
-MINIO_PORT=9000
-MINIO_ACCESS_KEY=minioadmin
-MINIO_SECRET_KEY=minioadmin123
-MINIO_BUCKET_NAME=statements
-MINIO_USE_SSL=false
-
-# SuperTokens Authentication
-SUPERTOKENS_CORE_URI=http://supertokens:3567
-SUPERTOKENS_DASHBOARD_API_KEY=your-dashboard-api-key-here
-
-# Admin User (Created automatically on startup)
-ADMIN_EMAIL=admin@yourdomain.com
-ADMIN_PASSWORD=AdminPassword123!
-
-# Application Settings
-PORT=3000
-NODE_ENV=production
-```
+3. **Update environment variables in `.env` as needed for your environment**
 
 4. **Start all services:**
 ```bash
@@ -73,34 +49,66 @@ docker-compose ps
 docker-compose logs app
 
 # Test the application
-curl http://localhost:3000/health
+curl http://localhost:3000/api/v1/health
 ```
 
-6. **Access the application:**
-- **Main Application**: http://localhost:3000
-- **SuperTokens Dashboard**: http://localhost:3567/auth/dashboard
-- **MinIO Console**: http://localhost:9001 (minioadmin / minioadmin123)
+## 🌐 Access Points
 
-## 🔐 Admin Login
+After deployment, the following services are available:
 
-The admin user is created automatically during startup. Login with:
+| Service | URL | Credentials |
+|---------|-----|-------------|
+| **Main Application** | http://localhost:3000 | N/A |
+| **API Documentation** | http://localhost:3000/api/docs | N/A |
+| **SuperTokens Dashboard** | http://localhost:3000/auth/dashboard | See dashboard admin emails in .env |
+| **MinIO Console** | http://localhost:9003 | minioadmin / minioadmin123 |
 
-```bash
-curl -X POST http://localhost:3000/api/v1/auth/login \
-  -H "Content-Type: application/json" \
-  -c cookies.txt \
-  -d '{
-    "email": "admin@yourdomain.com",
-    "password": "AdminPassword123!"
-  }'
-```
+## 🔐 Admin Authentication
+
+The admin user is created automatically during startup. Default credentials:
+- **Email**: `admin@yourdomain.com`
+- **Password**: `AdminPassword123!`
+
+## 📮 API Testing with Postman
+
+### Quick Setup
+1. **Import Collection**: Import `postman/Secure-Statement-Service.postman_collection.json`
+2. **Import Environment**: Import `postman/Secure-Statement-Service-Local.postman_environment.json`
+3. **Select Environment**: Choose "Secure Statement Service - Local"
+4. **Login**: Run "Authentication > Login (Sign In)" - tokens are automatically saved
+5. **Test Endpoints**: All other endpoints will use saved authentication automatically
+
+### Key Features
+- ✅ **Automatic token management** - No manual copying required
+- ✅ **Complete API coverage** - All endpoints included
+- ✅ **Environment variables** - Easy configuration
+- ✅ **Test scripts** - Automatic response validation
+
+## 🔧 Dashboard Access
+
+### SuperTokens Dashboard
+- **URL**: http://localhost:3567/auth/dashboard
+- **Purpose**: Manage users, view session data, and configure authentication
+- **Access**: Use admin emails configured in `SUPERTOKENS_DASHBOARD_ADMINS`
+
+### MinIO Console
+- **URL**: http://localhost:9003
+- **Purpose**: Manage file storage, view buckets, and monitor uploads
+- **Credentials**: `minioadmin` / `minioadmin123` (configurable via `.env`)
+- **Features**: 
+  - View uploaded statements
+  - Monitor storage usage
+  - Manage bucket policies
+  - Download/preview files
 
 ## 📚 API Endpoints
 
+All endpoints are documented with Swagger at http://localhost:3000/api/docs
+
 ### Authentication
-- **POST** `/api/v1/auth/login` - Admin login
-- **POST** `/api/v1/auth/logout` - Admin logout  
-- **GET** `/api/v1/auth/me` - Get current admin user
+- **POST** `/auth/signin` - Admin login
+- **POST** `/auth/logout` - Admin logout  
+- **GET** `/auth/me` - Get current admin user
 
 ### Statements (Admin Only - Requires Authentication)
 - **POST** `/api/v1/statements/upload` - Upload new PDF statement
@@ -110,9 +118,11 @@ curl -X POST http://localhost:3000/api/v1/auth/login \
 - **GET** `/api/v1/statements/:id/download-logs` - Get download audit logs
 
 ### Health Check
-- **GET** `/health` - Service health status
+- **GET** `/api/v1/health` - Service health status
+- **GET** `/api/v1/health/ready` - Service readiness check
+- **GET** `/api/v1/health/live` - Service liveness check
 
-**Note:** All statement endpoints require admin authentication. Include session cookies from login in your requests.
+**Note:** Use the Postman collection for easy API testing with automatic authentication.
 
 ## 🗂️ Services
 
@@ -121,8 +131,9 @@ The application runs with the following Docker services:
 | Service | Port | Description |
 |---------|------|-------------|
 | `app` | 3000 | NestJS application |
-| `postgres` | 5432 | PostgreSQL database |
-| `minio` | 9000, 9001 | S3-compatible object storage |
+| `postgres` | 5432 | PostgreSQL database (main app) |
+| `supertokens-db` | 5433 | PostgreSQL database (SuperTokens) |
+| `minio` | 9002, 9003 | S3-compatible object storage (API, Console) |
 | `supertokens` | 3567 | Authentication service |
 
 ## 📊 Monitoring
@@ -142,13 +153,13 @@ docker-compose logs -f supertokens
 ### Health Checks
 ```bash
 # Application health
-curl http://localhost:3000/health
+curl http://localhost:3000/api/v1/health
 
 # Service readiness
-curl http://localhost:3000/health/ready
+curl http://localhost:3000/api/v1/health/ready
 
 # Service liveness
-curl http://localhost:3000/health/live
+curl http://localhost:3000/api/v1/health/live
 ```
 
 ## �️ Management
@@ -180,10 +191,13 @@ docker-compose down -v
 
 ## 🔒 Security Notes
 
-- **Change Default Passwords**: Update `ADMIN_PASSWORD` and `SUPERTOKENS_DASHBOARD_API_KEY` before production use
-- **Database Security**: Consider using stronger database credentials for production
-- **Storage Security**: MinIO credentials should be changed for production environments
+- **Change Default Passwords**: Update admin credentials in `.env` before production use
+- **Dashboard Security**: Update `SUPERTOKENS_DASHBOARD_API_KEY` and admin emails
+- **Database Security**: Use strong credentials for PostgreSQL databases
+- **Storage Security**: Change MinIO credentials for production environments
+- **JWT Security**: Update `JWT_SECRET` and `ENCRYPTION_KEY` with strong random values
 - **Network Security**: Use HTTPS and proper firewall rules in production
+- **Environment Variables**: Never commit `.env` files to version control
 - **Backup Strategy**: Implement regular database and file backups
 
 ## � Troubleshooting
