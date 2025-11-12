@@ -13,9 +13,20 @@ async function bootstrap() {
   const corsOrigins = configService.get('app.corsOrigins') || [];
   app.enableCors({
     origin: corsOrigins,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'front-token'],
-    exposedHeaders: ['front-token', 'st-access-token', 'st-refresh-token'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: [
+      'Content-Type', 
+      'Authorization', 
+      'front-token', 
+      'st-auth-mode', 
+      'rid',
+      'fdi-version',        // SuperTokens frontend driver interface version
+      'anti-csrf',          // SuperTokens anti-CSRF token
+      'st-access-token',    // SuperTokens access token
+      'st-refresh-token',   // SuperTokens refresh token
+    ],
+    exposedHeaders: ['front-token', 'st-access-token', 'st-refresh-token', 'anti-csrf'],
+    credentials: true, // CRITICAL: Allow credentials (cookies) to be sent
   });
 
   // Global validation pipe

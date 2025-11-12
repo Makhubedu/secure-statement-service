@@ -1,33 +1,135 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
+import { useAuth } from "@/lib/auth-context";
+import { config } from "@/lib/config";
+import {
+  StatementsTable,
+  UploadStatementModal,
+  DownloadLinkModal,
+} from "./components";
+import type { Statement, BaseResponse } from "./types";
+
 export default function StatementsPage() {
+  const { user } = useAuth();
+
+  // Upload modal state
+  const [showUploadModal, setShowUploadModal] = useState(false);
+
+  // List state
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [statements, setStatements] = useState<Statement[]>([]);
+
+  // Generate link state
+  const [linkModal, setLinkModal] = useState<{
+    open: boolean;
+    url: string;
+    expiresAt?: string;
+    fileName?: string;
+    error?: string;
+  }>({ open: false, url: "" });
+
+  const apiBase = useMemo(() => config.api.apiPath, []);
+
+  useEffect(() => {
+    if (!user?.userId) return;
+    const load = async () => {
+      try {
+        setLoading(true);
+        setError("");
+        const res = await fetch(`${apiBase}/statements/mine`, {
+          credentials: "include",
+        });
+        const json: BaseResponse<Statement[]> = await res.json();
+        if (!res.ok) throw new Error(json.message || "Failed to fetch statements");
+        setStatements(json.data || []);
+      } catch (e: any) {
+        setError(e.message || "Failed to load statements");
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [user?.userId, apiBase]);
+
+  const refreshStatements = async () => {
+    if (!user?.userId) return;
+    try {
+      setLoading(true);
+      const res = await fetch(`${apiBase}/statements/mine`, {
+        credentials: "include",
+      });
+      const json: BaseResponse<Statement[]> = await res.json();
+      if (res.ok) setStatements(json.data || []);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGenerateLink = async (statement: Statement) => {
+    if (!user?.userId) return;
+    try {
+      setLinkModal({ open: true, url: "", fileName: statement.originalFileName });
+      const res = await fetch(`${apiBase}/statements/${statement.id}/download-link`, {
+        method: "GET",
+        credentials: "include",
+      });
+      const json: BaseResponse<{
+        downloadUrl: string;
+        expiresAt: string;
+        expiresInSeconds: number;
+      }> = await res.json();
+      if (!res.ok) throw new Error(json.message || "Failed to generate link");
+      const url = json.data?.downloadUrl || "";
+      setLinkModal({
+        open: true,
+        url,
+        expiresAt: json.data?.expiresAt,
+        fileName: statement.originalFileName,
+      });
+    } catch (e: any) {
+      setLinkModal({ open: true, url: "", error: e.message });
+    }
+  };
+
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-4xl font-bold text-capitec-navy">Statements</h1>
-          <p className="text-lg mt-2 text-neutral-400">
-            Manage and view all financial statements
-          </p>
+          <p className="text-lg mt-2 text-neutral-400">Manage and view all financial statements</p>
         </div>
-        <button className="btn-capitec-primary hover-lift">
+        <button onClick={() => setShowUploadModal(true)} className="btn-capitec-primary hover-lift">
           + Upload Statement
         </button>
       </div>
 
-      <div className="card-capitec p-12">
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <div className="icon-bg-blue mb-6">
-            <svg className="h-20 w-20 text-capitec-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-          </div>
-          <h3 className="text-xl font-bold mb-2 text-capitec-navy">No statements yet</h3>
-          <p className="text-base max-w-md text-neutral-400">
-            Upload your first statement to get started with secure document distribution.
-          </p>
-        </div>
-      </div>
+      <UploadStatementModal
+        isOpen={showUploadModal}
+        userEmail={user?.email}
+        userId={user?.userId}
+        apiBase={apiBase}
+        onClose={() => setShowUploadModal(false)}
+        onUploadSuccess={refreshStatements}
+      />
+
+      <StatementsTable
+        statements={statements}
+        loading={loading}
+        error={error}
+        onRefresh={refreshStatements}
+        onGenerateLink={handleGenerateLink}
+      />
+
+      <DownloadLinkModal
+        isOpen={linkModal.open}
+        url={linkModal.url}
+        fileName={linkModal.fileName}
+        expiresAt={linkModal.expiresAt}
+        error={linkModal.error}
+        onClose={() => setLinkModal({ open: false, url: "" })}
+      />
     </div>
   );
 }

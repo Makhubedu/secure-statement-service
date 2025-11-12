@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const queryString = searchParams.toString();
-    const url = `${API_BASE_URL}/statements${queryString ? `?${queryString}` : ""}`;
+    const url = `${API_BASE_URL}/api/v1/statements${queryString ? `?${queryString}` : ""}`;
 
     const cookies = request.headers.get("cookie");
     const frontToken = request.headers.get("front-token");
@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const url = `${API_BASE_URL}/statements`;
+    const url = `${API_BASE_URL}/api/v1/statements`;
 
     const cookies = request.headers.get("cookie");
     const frontToken = request.headers.get("front-token");

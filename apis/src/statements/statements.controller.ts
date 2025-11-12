@@ -26,17 +26,18 @@ import {
   DownloadLogResponseDto,
   BaseResponseDto,
 } from '../common/dto';
-import { AuthGuard, RolesGuard, Roles } from '../auth';
+import { AuthGuard, RolesGuard, Roles, SessionInfo } from '../auth';
 
 @ApiTags('Statements')
 @Controller('statements')
 @UseGuards(AuthGuard, RolesGuard)
-@Roles('admin')
 @ApiBearerAuth('JWT-auth')
 export class StatementsController {
   constructor(private readonly statementsService: StatementsService) {}
 
+  // ADMIN: Upload a new statement for a user
   @Post('upload')
+  @Roles('admin')
   @HttpCode(HttpStatus.CREATED)
   @UseInterceptors(FileInterceptor('file'))
   @ApiOperation({ 
@@ -104,7 +105,9 @@ export class StatementsController {
     );
   }
 
+  // ADMIN or USER: Generate a download link (requires explicit userId in body for admin use cases)
   @Post('download')
+  @Roles('admin', 'user')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Generate secure download link',
@@ -143,7 +146,32 @@ export class StatementsController {
     );
   }
 
+  // USER: List own statements without exposing other user IDs
+  @Get('mine')
+  @Roles('user', 'admin')
+  @ApiOperation({
+    summary: 'Get current user statements',
+    description: 'Retrieve all statements for the authenticated session user'
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'User statements retrieved successfully',
+    type: BaseResponseDto<StatementResponseDto[]>
+  })
+  async getMyStatements(
+    @SessionInfo() session: any,
+  ): Promise<BaseResponseDto<StatementResponseDto[]>> {
+    const userId = session?.userId;
+    if (!userId) {
+      throw new BadRequestException('Authenticated user context not found');
+    }
+    const statements = await this.statementsService.getStatementsByUser(userId);
+    return BaseResponseDto.success(`Found ${statements.length} statements for user`, statements);
+  }
+
+  // ADMIN: List statements for any user
   @Get('user/:userId')
+  @Roles('admin')
   @ApiOperation({
     summary: 'Get statements by user',
     description: 'Retrieve all statements for a specific user'
@@ -164,32 +192,45 @@ export class StatementsController {
     );
   }
 
-  @Get(':id')
+  // ADMIN or USER: Generate a download link for the current session user without sending userId in body
+  @Get(':id/download-link')
+  @Roles('admin', 'user')
   @ApiOperation({
-    summary: 'Get statement by ID',
-    description: 'Retrieve a specific statement by its ID'
+    summary: 'Generate secure download link (session user)',
+    description: 'Generate time-limited signed URL for the authenticated user who owns the statement.'
   })
   @ApiResponse({
     status: 200,
-    description: 'Statement retrieved successfully',
-    type: BaseResponseDto<StatementResponseDto>
+    description: 'Download link generated successfully',
+    type: BaseResponseDto<DownloadLinkResponseDto>
   })
-  @ApiResponse({
-    status: 404,
-    description: 'Statement not found'
-  })
-  async getStatementById(
-    @Param('id', ParseUUIDPipe) id: string,
-  ): Promise<BaseResponseDto<StatementResponseDto>> {
-    const statement = await this.statementsService.getStatementById(id);
-    
-    return BaseResponseDto.success(
-      'Statement retrieved successfully',
-      statement
-    );
+  @ApiResponse({ status: 404, description: 'Statement not found' })
+  @ApiResponse({ status: 400, description: 'Statement not available for download or validation failed' })
+  async generateDownloadLinkForSessionUser(
+    @Param('id', ParseUUIDPipe) statementId: string,
+    @Req() request: Request,
+    @SessionInfo() session: any,
+  ): Promise<BaseResponseDto<DownloadLinkResponseDto>> {
+    const userId = session?.userId;
+    if (!userId) {
+      throw new BadRequestException('Authenticated user context not found');
+    }
+
+    const ipAddress = request.ip || request.connection.remoteAddress || request.socket.remoteAddress || 'unknown';
+    const userAgent = request.get('User-Agent');
+
+    const downloadLinkData = await this.statementsService.generateDownloadLink({
+      statementId,
+      userId,
+      ipAddress,
+      userAgent,
+    });
+
+    return BaseResponseDto.success('Download link generated successfully', downloadLinkData);
   }
 
   @Get(':id/download-logs')
+  @Roles('admin')
   @ApiOperation({
     summary: 'Get download logs for statement',
     description: 'Retrieve audit logs of all download attempts for a statement'
@@ -211,6 +252,32 @@ export class StatementsController {
     return BaseResponseDto.success(
       `Found ${logs.length} download log entries`,
       logs
+    );
+  }
+
+  @Get(':id')
+  @Roles('admin')
+  @ApiOperation({
+    summary: 'Get statement by ID',
+    description: 'Retrieve a specific statement by its ID'
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Statement retrieved successfully',
+    type: BaseResponseDto<StatementResponseDto>
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Statement not found'
+  })
+  async getStatementById(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<BaseResponseDto<StatementResponseDto>> {
+    const statement = await this.statementsService.getStatementById(id);
+    
+    return BaseResponseDto.success(
+      'Statement retrieved successfully',
+      statement
     );
   }
 }

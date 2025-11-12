@@ -7,7 +7,10 @@ import {
   useEffect,
   ReactNode,
 } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useSessionContext } from "supertokens-auth-react/recipe/session";
+import { signOut } from "supertokens-auth-react/recipe/emailpassword";
+import { getApiUrl } from "./config";
 
 interface User {
   userId: string;
@@ -27,29 +30,28 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [authLoading, setAuthLoading] = useState<boolean>(true);
+  const session = useSessionContext();
   const router = useRouter();
-  const pathname = usePathname();
 
   const checkAuth = async () => {
+    // Gate UI until we've checked with backend when session state changes
+    setAuthLoading(true);
+    if (session.loading) return;
+
+    const doesSessionExist =
+      !session.loading && session.accessTokenPayload !== undefined;
+
+    if (!doesSessionExist) {
+      setUser(null);
+      setAuthLoading(false);
+      return;
+    }
+
     try {
-      const frontToken = sessionStorage.getItem("front-token");
-      const accessToken = sessionStorage.getItem("st-access-token");
-
-      const headers: HeadersInit = {
-        "Content-Type": "application/json",
-      };
-
-      if (frontToken) {
-        headers["front-token"] = frontToken;
-      }
-      if (accessToken) {
-        headers["st-access-token"] = accessToken;
-      }
-
-      const response = await fetch("/api/auth/me", {
+      // Call backend directly - SuperTokens automatically sends cookies
+      const response = await fetch(getApiUrl("/auth/me"), {
         credentials: "include",
-        headers,
       });
 
       if (response.ok) {
@@ -62,50 +64,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           });
         } else {
           setUser(null);
-          sessionStorage.removeItem("front-token");
-          sessionStorage.removeItem("st-access-token");
-          sessionStorage.removeItem("st-refresh-token");
         }
       } else {
         setUser(null);
-        sessionStorage.removeItem("front-token");
-        sessionStorage.removeItem("st-access-token");
-        sessionStorage.removeItem("st-refresh-token");
       }
     } catch (error) {
       console.error("Auth check failed:", error);
       setUser(null);
     } finally {
-      setIsLoading(false);
+      setAuthLoading(false);
     }
   };
 
   const logout = async () => {
     try {
-      const frontToken = sessionStorage.getItem("front-token");
-      const accessToken = sessionStorage.getItem("st-access-token");
-
-      const headers: HeadersInit = {
-        "Content-Type": "application/json",
-      };
-
-      if (frontToken) {
-        headers["front-token"] = frontToken;
-      }
-      if (accessToken) {
-        headers["st-access-token"] = accessToken;
-      }
-
-      await fetch("/api/auth/logout", {
-        method: "POST",
-        credentials: "include",
-        headers,
-      });
-
-      sessionStorage.removeItem("front-token");
-      sessionStorage.removeItem("st-access-token");
-      sessionStorage.removeItem("st-refresh-token");
-
+      await signOut();
       setUser(null);
       router.push("/login");
       router.refresh();
@@ -116,14 +89,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     checkAuth();
-  }, [pathname]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session.loading]);
+
+  const doesSessionExist =
+    !session.loading && session.accessTokenPayload !== undefined;
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        isLoading,
-        isAuthenticated: !!user,
+        isLoading: session.loading || authLoading,
+        isAuthenticated: !!user && doesSessionExist,
         logout,
         checkAuth,
       }}

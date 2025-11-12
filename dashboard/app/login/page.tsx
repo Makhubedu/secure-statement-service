@@ -1,15 +1,52 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { signIn } from "supertokens-auth-react/recipe/emailpassword";
+import Session from "supertokens-auth-react/recipe/session";
+import { getApiUrl } from "@/lib/config";
 
 export default function LoginPage() {
+  const router = useRouter();
+  // If already authenticated (mounted navigation), push to dashboard
+  useEffect(() => {
+    (async () => {
+      try {
+        if (await Session.doesSessionExist()) {
+          // optional backend confirmation; ignore errors
+          try { await fetch(getApiUrl("/auth/me"), { credentials: "include" }); } catch {}
+          router.replace("/dashboard");
+        }
+      } catch {}
+    })();
+  }, [router]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
+
+  async function waitForSessionStable(maxMs = 3000): Promise<boolean> {
+    const start = Date.now();
+    while (Date.now() - start < maxMs) {
+      try {
+        if (await Session.doesSessionExist()) {
+          // Double-check backend recognises session (guards rely on this)
+          const meResp = await fetch(getApiUrl("/auth/me"), {
+            credentials: "include",
+          });
+          if (meResp.ok) {
+            const json = await meResp.json();
+            if (json && json.success) return true;
+          }
+        }
+      } catch (err) {
+        // swallow and retry until timeout
+      }
+      await new Promise((r) => setTimeout(r, 150));
+    }
+    return false;
+  }
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -17,41 +54,35 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-        credentials: "include",
+      const response = await signIn({
+        formFields: [
+          { id: "email", value: email },
+          { id: "password", value: password },
+        ],
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data.error || "Login failed");
+      if (response.status === "OK") {
+        const stable = await waitForSessionStable();
+        if (stable) {
+          router.replace("/dashboard");
+        } else {
+          setError(
+            "Session could not be established. Please retry signing in."
+          );
+          setIsLoading(false);
+        }
+      } else if (response.status === "WRONG_CREDENTIALS_ERROR") {
+        setError("Invalid email or password");
         setIsLoading(false);
-        return;
-      }
-
-      if (data.success) {
-        const frontToken = response.headers.get("front-token");
-        const accessToken = response.headers.get("st-access-token");
-        const refreshToken = response.headers.get("st-refresh-token");
-
-        if (frontToken) {
-          sessionStorage.setItem("front-token", frontToken);
-        }
-        if (accessToken) {
-          sessionStorage.setItem("st-access-token", accessToken);
-        }
-        if (refreshToken) {
-          sessionStorage.setItem("st-refresh-token", refreshToken);
-        }
-
-        window.location.href = "/dashboard";
+      } else if (response.status === "FIELD_ERROR") {
+        const errors = response.formFields
+          .map((field) => field.error)
+          .filter(Boolean)
+          .join(", ");
+        setError(errors || "Invalid input");
+        setIsLoading(false);
       } else {
-        setError(data.error || "Login failed");
+        setError("Login failed. Please try again.");
         setIsLoading(false);
       }
     } catch (err) {

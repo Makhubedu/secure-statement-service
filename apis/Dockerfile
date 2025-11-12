@@ -60,6 +60,9 @@ COPY --chown=nestjs:nodejs tsconfig.migration.json ./
 COPY --chown=nestjs:nodejs data-source.ts ./
 COPY --chown=nestjs:nodejs src ./src
 
+# Copy .env file
+COPY --chown=nestjs:nodejs .env.dev ./.env
+
 # Copy startup script
 COPY --chown=nestjs:nodejs scripts/docker-entrypoint.sh ./
 RUN chmod +x docker-entrypoint.sh
