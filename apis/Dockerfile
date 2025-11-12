@@ -47,12 +47,22 @@ RUN npm install -g pnpm
 COPY package*.json ./
 COPY pnpm-lock.yaml ./
 
-# Install only production dependencies
-RUN pnpm install --frozen-lockfile --prod
+# Install only production dependencies (including dev dependencies for migrations)
+RUN pnpm install --frozen-lockfile
 
 # Copy built application
 COPY --from=build --chown=nestjs:nodejs /app/dist ./dist
 COPY --from=build --chown=nestjs:nodejs /app/node_modules ./node_modules
+
+# Copy TypeScript config and source files needed for migrations
+COPY --chown=nestjs:nodejs tsconfig.json ./
+COPY --chown=nestjs:nodejs tsconfig.migration.json ./
+COPY --chown=nestjs:nodejs data-source.ts ./
+COPY --chown=nestjs:nodejs src ./src
+
+# Copy startup script
+COPY --chown=nestjs:nodejs scripts/docker-entrypoint.sh ./
+RUN chmod +x docker-entrypoint.sh
 
 # Create uploads directory
 RUN mkdir -p uploads && chown nestjs:nodejs uploads
@@ -69,4 +79,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 
 # Start application with dumb-init
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["node", "dist/src/main"]
+CMD ["sh", "./docker-entrypoint.sh"]
