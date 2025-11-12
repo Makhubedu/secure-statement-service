@@ -3,12 +3,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { config } from "@/lib/config";
+import { ERROR_MESSAGES } from "@/lib/constants";
 import {
   StatementsTable,
   UploadStatementModal,
   DownloadLinkModal,
 } from "./components";
-import type { Statement, BaseResponse } from "./types";
+import type { Statement, BaseResponse, DownloadLinkResponse } from "@/types";
 
 export default function StatementsPage() {
   const { user } = useAuth();
@@ -42,10 +43,11 @@ export default function StatementsPage() {
           credentials: "include",
         });
         const json: BaseResponse<Statement[]> = await res.json();
-        if (!res.ok) throw new Error(json.message || "Failed to fetch statements");
+        if (!res.ok) throw new Error(json.message || ERROR_MESSAGES.STATEMENTS.FETCH_FAILED);
         setStatements(json.data || []);
-      } catch (e: any) {
-        setError(e.message || "Failed to load statements");
+      } catch (e) {
+        const error = e as Error;
+        setError(error.message || ERROR_MESSAGES.STATEMENTS.FETCH_FAILED);
       } finally {
         setLoading(false);
       }
@@ -75,12 +77,8 @@ export default function StatementsPage() {
         method: "GET",
         credentials: "include",
       });
-      const json: BaseResponse<{
-        downloadUrl: string;
-        expiresAt: string;
-        expiresInSeconds: number;
-      }> = await res.json();
-      if (!res.ok) throw new Error(json.message || "Failed to generate link");
+      const json: BaseResponse<DownloadLinkResponse> = await res.json();
+      if (!res.ok) throw new Error(json.message || ERROR_MESSAGES.STATEMENTS.LINK_GENERATION_FAILED);
       const url = json.data?.downloadUrl || "";
       setLinkModal({
         open: true,
@@ -88,8 +86,9 @@ export default function StatementsPage() {
         expiresAt: json.data?.expiresAt,
         fileName: statement.originalFileName,
       });
-    } catch (e: any) {
-      setLinkModal({ open: true, url: "", error: e.message });
+    } catch (e) {
+      const error = e as Error;
+      setLinkModal({ open: true, url: "", error: error.message });
     }
   };
 

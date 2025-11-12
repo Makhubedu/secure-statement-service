@@ -6,44 +6,47 @@ import Link from "next/link";
 import { signIn } from "supertokens-auth-react/recipe/emailpassword";
 import Session from "supertokens-auth-react/recipe/session";
 import { getApiUrl } from "@/lib/config";
+import { SESSION_CONFIG, ERROR_MESSAGES } from "@/lib/constants";
 
 export default function LoginPage() {
   const router = useRouter();
-  // If already authenticated (mounted navigation), push to dashboard
-  useEffect(() => {
-    (async () => {
-      try {
-        if (await Session.doesSessionExist()) {
-          // optional backend confirmation; ignore errors
-          try { await fetch(getApiUrl("/auth/me"), { credentials: "include" }); } catch {}
-          router.replace("/dashboard");
-        }
-      } catch {}
-    })();
-  }, [router]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  async function waitForSessionStable(maxMs = 3000): Promise<boolean> {
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        if (await Session.doesSessionExist()) {
+          try {
+            await fetch(getApiUrl("/auth/me"), { credentials: "include" });
+          } catch {
+          }
+          router.replace("/dashboard");
+        }
+      } catch {
+      }
+    };
+    checkSession();
+  }, [router]);
+
+  async function waitForSessionStable(maxMs = SESSION_CONFIG.WAIT_FOR_SESSION_MAX_MS): Promise<boolean> {
     const start = Date.now();
     while (Date.now() - start < maxMs) {
       try {
         if (await Session.doesSessionExist()) {
-          // Double-check backend recognises session (guards rely on this)
           const meResp = await fetch(getApiUrl("/auth/me"), {
             credentials: "include",
           });
           if (meResp.ok) {
             const json = await meResp.json();
-            if (json && json.success) return true;
+            if (json?.success) return true;
           }
         }
-      } catch (err) {
-        // swallow and retry until timeout
+      } catch {
       }
-      await new Promise((r) => setTimeout(r, 150));
+      await new Promise((r) => setTimeout(r, SESSION_CONFIG.WAIT_FOR_SESSION_RETRY_MS));
     }
     return false;
   }
@@ -66,13 +69,11 @@ export default function LoginPage() {
         if (stable) {
           router.replace("/dashboard");
         } else {
-          setError(
-            "Session could not be established. Please retry signing in."
-          );
+          setError(ERROR_MESSAGES.AUTH.SESSION_FAILED);
           setIsLoading(false);
         }
       } else if (response.status === "WRONG_CREDENTIALS_ERROR") {
-        setError("Invalid email or password");
+        setError(ERROR_MESSAGES.AUTH.INVALID_CREDENTIALS);
         setIsLoading(false);
       } else if (response.status === "FIELD_ERROR") {
         const errors = response.formFields
@@ -82,11 +83,11 @@ export default function LoginPage() {
         setError(errors || "Invalid input");
         setIsLoading(false);
       } else {
-        setError("Login failed. Please try again.");
+        setError(ERROR_MESSAGES.AUTH.GENERIC);
         setIsLoading(false);
       }
     } catch (err) {
-      setError("An error occurred. Please try again.");
+      setError(ERROR_MESSAGES.AUTH.GENERIC);
       console.error("Login error:", err);
       setIsLoading(false);
     }

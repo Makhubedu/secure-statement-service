@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { FILE_CONSTRAINTS, DATE_FORMATS, ERROR_MESSAGES, SUCCESS_MESSAGES } from "@/lib/constants";
 
 type UploadStatementModalProps = {
   isOpen: boolean;
@@ -31,12 +32,12 @@ export function UploadStatementModal({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.type !== "application/pdf") {
-        setUploadError("Please select a PDF file");
+      if (!FILE_CONSTRAINTS.ALLOWED_TYPES.includes(file.type as typeof FILE_CONSTRAINTS.ALLOWED_TYPES[number])) {
+        setUploadError(ERROR_MESSAGES.UPLOAD.INVALID_TYPE);
         return;
       }
-      if (file.size > 10 * 1024 * 1024) {
-        setUploadError("File size must be less than 10MB");
+      if (file.size > FILE_CONSTRAINTS.MAX_SIZE_BYTES) {
+        setUploadError(ERROR_MESSAGES.UPLOAD.FILE_TOO_LARGE);
         return;
       }
       setFormData((prev) => ({ ...prev, file }));
@@ -51,13 +52,13 @@ export function UploadStatementModal({
     setIsUploading(true);
 
     if (!formData.file) {
-      setUploadError("Please select a file");
+      setUploadError(ERROR_MESSAGES.UPLOAD.NO_FILE);
       setIsUploading(false);
       return;
     }
 
     if (!userId) {
-      setUploadError("User not authenticated");
+      setUploadError(ERROR_MESSAGES.AUTH.NOT_AUTHENTICATED);
       setIsUploading(false);
       return;
     }
@@ -83,7 +84,7 @@ export function UploadStatementModal({
         return;
       }
 
-      setUploadSuccess("Statement uploaded successfully!");
+      setUploadSuccess(SUCCESS_MESSAGES.UPLOAD);
       setFormData({ statementPeriod: "", statementDate: "", file: null });
 
       const fileInput = document.getElementById("file-input") as HTMLInputElement;
@@ -97,7 +98,7 @@ export function UploadStatementModal({
       }, 1500);
     } catch (error) {
       console.error("Upload error:", error);
-      setUploadError("An error occurred during upload");
+      setUploadError(ERROR_MESSAGES.UPLOAD.GENERIC);
     } finally {
       setIsUploading(false);
     }
@@ -152,7 +153,7 @@ export function UploadStatementModal({
               onChange={(e) =>
                 setFormData({ ...formData, statementPeriod: e.target.value })
               }
-              placeholder="YYYY-MM (e.g., 2024-03)"
+              placeholder={DATE_FORMATS.STATEMENT_PERIOD_EXAMPLE}
               pattern="\d{4}-(0[1-9]|1[0-2])"
               required
               className="input-capitec"
@@ -212,7 +213,9 @@ export function UploadStatementModal({
                     Click to select PDF file
                   </p>
                 )}
-                <p className="text-xs text-neutral-400 mt-1">PDF only, max 10MB</p>
+                <p className="text-xs text-neutral-400 mt-1">
+                  PDF only, max {FILE_CONSTRAINTS.MAX_SIZE_MB}MB
+                </p>
               </label>
             </div>
           </div>

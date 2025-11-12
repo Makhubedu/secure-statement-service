@@ -3,35 +3,9 @@
 import { useEffect, useState, useMemo } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { config } from "@/lib/config";
-
-type Statement = {
-  id: string;
-  originalFileName: string;
-  statementPeriod: string;
-  fileSizeBytes: number;
-  fileName: string;
-};
-
-type DownloadLog = {
-  id: string;
-  statementId: string;
-  userId?: string;
-  status: string;
-  ipAddress: string;
-  userAgent?: string;
-  downloadedAt: string;
-  errorMessage?: string;
-  statement: {
-    fileName: string;
-    originalFileName: string;
-    statementPeriod: string;
-    fileSizeBytes: number;
-  };
-};
-
-type StatementWithLogs = Statement & {
-  logs: DownloadLog[];
-};
+import { formatFileSize, formatDate } from "@/lib/format-utils";
+import { ERROR_MESSAGES, USER_ROLES } from "@/lib/constants";
+import type { Statement, DownloadLog } from "@/types";
 
 export default function DownloadLogsPage() {
   const { user } = useAuth();
@@ -44,8 +18,7 @@ export default function DownloadLogsPage() {
   useEffect(() => {
     if (!user?.userId) return;
     
-    // Check if user is admin
-    const adminCheck = user.roles?.includes('admin') || false;
+    const adminCheck = user.roles?.includes(USER_ROLES.ADMIN) || false;
     setIsAdmin(adminCheck);
     
     const fetchDownloadLogs = async () => {
@@ -60,19 +33,17 @@ export default function DownloadLogsPage() {
         const statementsJson = await statementsRes.json();
         
         if (!statementsRes.ok) {
-          throw new Error(statementsJson.message || "Failed to fetch statements");
+          throw new Error(statementsJson.message || ERROR_MESSAGES.DOWNLOAD_LOGS.FETCH_FAILED);
         }
         
         const statements: Statement[] = statementsJson.data || [];
         
-        // If user is not admin, show message
         if (!adminCheck) {
           setLogs([]);
           setLoading(false);
           return;
         }
         
-        // For admins, fetch download logs for each statement
         const logsPromises = statements.map(async (statement) => {
           try {
             const logsRes = await fetch(`${apiBase}/statements/${statement.id}/download-logs`, {
@@ -92,15 +63,15 @@ export default function DownloadLogsPage() {
         const allLogsArrays = await Promise.all(logsPromises);
         const allLogs = allLogsArrays.flat();
         
-        // Sort by download date (most recent first)
         allLogs.sort((a, b) => 
           new Date(b.downloadedAt).getTime() - new Date(a.downloadedAt).getTime()
         );
         
         setLogs(allLogs);
         
-      } catch (e: any) {
-        setError(e.message || "Failed to load download logs");
+      } catch (e) {
+        const error = e as Error;
+        setError(error.message || ERROR_MESSAGES.DOWNLOAD_LOGS.FETCH_FAILED);
       } finally {
         setLoading(false);
       }
@@ -108,21 +79,6 @@ export default function DownloadLogsPage() {
 
     fetchDownloadLogs();
   }, [user?.userId, user?.roles, apiBase]);
-
-  const formatFileSize = (bytes: number) => {
-    return (bytes / (1024 * 1024)).toFixed(2);
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleString('en-ZA', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
 
   const getStatusBadge = (status: string) => {
     const statusLower = status.toLowerCase();
@@ -276,7 +232,7 @@ export default function DownloadLogsPage() {
                     </td>
                     <td className="px-4 md:px-6 py-3 md:py-4 whitespace-nowrap">
                       <div className="text-xs md:text-sm text-neutral-600">
-                        {formatFileSize(log.statement.fileSizeBytes)} MB
+                        {formatFileSize(log.statement.fileSizeBytes)}
                       </div>
                     </td>
                   </tr>

@@ -5,18 +5,14 @@ import {
   useContext,
   useState,
   useEffect,
+  useCallback,
   ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
 import { useSessionContext } from "supertokens-auth-react/recipe/session";
 import { signOut } from "supertokens-auth-react/recipe/emailpassword";
 import { getApiUrl } from "./config";
-
-interface User {
-  userId: string;
-  email: string;
-  roles: string[];
-}
+import type { User } from "@/types";
 
 interface AuthContextType {
   user: User | null;
@@ -34,8 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const session = useSessionContext();
   const router = useRouter();
 
-  const checkAuth = async () => {
-    // Gate UI until we've checked with backend when session state changes
+  const checkAuth = useCallback(async () => {
     setAuthLoading(true);
     if (session.loading) return;
 
@@ -49,7 +44,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      // Call backend directly - SuperTokens automatically sends cookies
       const response = await fetch(getApiUrl("/auth/me"), {
         credentials: "include",
       });
@@ -74,7 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setAuthLoading(false);
     }
-  };
+  }, [session.loading]);
 
   const logout = async () => {
     try {
@@ -88,9 +82,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    if (session.loading) return;
     checkAuth();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session.loading]);
+  }, [session.loading, checkAuth]);
 
   const doesSessionExist =
     !session.loading && session.accessTokenPayload !== undefined;

@@ -1,5 +1,6 @@
 import { StatusBadge } from "./StatusBadge";
-import type { Statement } from "../types";
+import { formatDateShort } from "@/lib/format-utils";
+import type { Statement } from "@/types";
 
 type StatementsTableProps = {
   statements: Statement[];
@@ -88,7 +89,7 @@ export function StatementsTable({
               <tr key={statement.id} className="border-t border-neutral-100 hover:bg-neutral-50 transition-colors">
                 <td className="py-4 font-medium text-capitec-navy">{statement.statementPeriod}</td>
                 <td className="py-4 text-neutral-600">
-                  {new Date(statement.createdAt).toLocaleDateString()}
+                  {formatDateShort(statement.createdAt)}
                 </td>
                 <td className="py-4 text-neutral-600 max-w-xs truncate" title={statement.originalFileName}>
                   {statement.originalFileName}
@@ -128,7 +129,7 @@ export function StatementsTable({
               <div>
                 <div className="font-bold text-capitec-navy text-base">{statement.statementPeriod}</div>
                 <div className="text-xs text-neutral-400 mt-1">
-                  {new Date(statement.createdAt).toLocaleDateString()}
+                  {formatDateShort(statement.createdAt)}
                 </div>
               </div>
               <StatusBadge

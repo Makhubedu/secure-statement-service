@@ -3,13 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { config } from "@/lib/config";
-
-type Statement = {
-  id: string;
-  downloadCount: number;
-  isDownloadable: boolean;
-  status: string;
-};
+import type { Statement } from "@/types";
 
 export default function DashboardPage() {
   const { user } = useAuth();
