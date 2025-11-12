@@ -111,12 +111,13 @@ export function UploadStatementModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="card-capitec max-w-2xl w-full p-8 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-capitec-navy">Upload Statement</h2>
+      <div className="card-capitec max-w-2xl w-full p-4 md:p-8 max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between mb-4 md:mb-6">
+          <h2 className="text-xl md:text-2xl font-bold text-capitec-navy">Upload Statement</h2>
           <button
             onClick={handleClose}
-            className="text-neutral-400 hover:text-capitec-navy transition-colors text-3xl leading-none"
+            className="text-neutral-400 hover:text-capitec-navy transition-colors text-3xl leading-none p-1"
+            aria-label="Close modal"
           >
             ×
           </button>
@@ -124,22 +125,15 @@ export function UploadStatementModal({
 
         {uploadError && <div className="alert-capitec-error mb-4">{uploadError}</div>}
         {uploadSuccess && (
-          <div
-            className="rounded-lg border-2 p-4 text-sm font-medium mb-4"
-            style={{
-              borderColor: "var(--capitec-green)",
-              backgroundColor: "#E7F7EF",
-              color: "var(--capitec-green)",
-            }}
-          >
+          <div className="alert-capitec-success mb-4">
             {uploadSuccess}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-4 md:space-y-5">
           <div>
             <label className="label-capitec">Uploading For</label>
-            <div className="input-capitec bg-neutral-50 cursor-not-allowed">
+            <div className="input-capitec bg-neutral-50 cursor-not-allowed text-sm md:text-base">
               {userEmail || "Loading..."}
             </div>
             <p className="text-xs text-neutral-400 mt-1">
@@ -186,14 +180,7 @@ export function UploadStatementModal({
             <label htmlFor="file-input" className="label-capitec">
               PDF File <span className="text-capitec-red">*</span>
             </label>
-            <div
-              className="border-2 border-dashed rounded-lg p-6 text-center transition-colors"
-              style={{
-                borderColor: formData.file
-                  ? "var(--capitec-blue)"
-                  : "var(--neutral-100)",
-              }}
-            >
+            <div className="border-2 border-dashed rounded-lg p-4 md:p-6 text-center transition-colors border-neutral-100 hover:border-capitec-blue">
               <input
                 id="file-input"
                 type="file"
@@ -204,7 +191,7 @@ export function UploadStatementModal({
               />
               <label htmlFor="file-input" className="cursor-pointer">
                 <svg
-                  className="mx-auto h-12 w-12 text-neutral-400 mb-3"
+                  className="mx-auto h-10 w-10 md:h-12 md:w-12 text-neutral-400 mb-2 md:mb-3"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -217,12 +204,12 @@ export function UploadStatementModal({
                   />
                 </svg>
                 {formData.file ? (
-                  <p className="text-sm font-medium text-capitec-navy">
+                  <p className="text-sm font-medium text-capitec-navy break-all px-2">
                     {formData.file.name}
                   </p>
                 ) : (
                   <p className="text-sm text-neutral-400">
-                    Click to select PDF file or drag and drop
+                    Click to select PDF file
                   </p>
                 )}
                 <p className="text-xs text-neutral-400 mt-1">PDF only, max 10MB</p>
@@ -230,22 +217,18 @@ export function UploadStatementModal({
             </div>
           </div>
 
-          <div className="flex gap-3 pt-4">
+          <div className="flex flex-col sm:flex-row gap-3 pt-2 md:pt-4">
             <button
               type="button"
               onClick={handleClose}
-              className="flex-1 px-6 py-3 rounded-lg font-bold transition-all border-2"
-              style={{
-                borderColor: "var(--neutral-100)",
-                color: "var(--neutral-400)",
-              }}
+              className="flex-1 btn-capitec-outline order-2 sm:order-1"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isUploading}
-              className="flex-1 btn-capitec-primary"
+              className="flex-1 btn-capitec-primary order-1 sm:order-2"
             >
               {isUploading ? "Uploading..." : "Upload Statement"}
             </button>

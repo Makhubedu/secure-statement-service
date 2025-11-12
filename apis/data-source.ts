@@ -1,9 +1,21 @@
 import { DataSource } from 'typeorm';
 import { Statement, DownloadLog } from './src/common/entities';
 import * as dotenv from 'dotenv';
+import * as path from 'path';
+import * as fs from 'fs';
 
 // Load environment variables
-dotenv.config();
+// Try .env.local first (for local development), fallback to .env
+const localEnvPath = path.resolve(__dirname, '.env.local');
+const defaultEnvPath = path.resolve(__dirname, '.env');
+
+if (fs.existsSync(localEnvPath)) {
+  console.log('Loading environment from .env.local');
+  dotenv.config({ path: localEnvPath });
+} else {
+  console.log('Loading environment from .env');
+  dotenv.config({ path: defaultEnvPath });
+}
 
 export const AppDataSource = new DataSource({
   type: 'postgres',

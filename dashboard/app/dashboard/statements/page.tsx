@@ -94,13 +94,16 @@ export default function StatementsPage() {
   };
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 md:space-y-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-bold text-capitec-navy">Statements</h1>
-          <p className="text-lg mt-2 text-neutral-400">Manage and view all financial statements</p>
+          <h1 className="text-2xl md:text-4xl font-bold text-capitec-navy">Statements</h1>
+          <p className="text-base md:text-lg mt-1 md:mt-2 text-neutral-400">Manage and view all financial statements</p>
         </div>
-        <button onClick={() => setShowUploadModal(true)} className="btn-capitec-primary hover-lift">
+        <button 
+          onClick={() => setShowUploadModal(true)} 
+          className="btn-capitec-primary hover-lift w-full sm:w-auto"
+        >
           + Upload Statement
         </button>
       </div>

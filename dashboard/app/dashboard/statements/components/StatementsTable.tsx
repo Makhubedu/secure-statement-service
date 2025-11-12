@@ -18,7 +18,7 @@ export function StatementsTable({
 }: StatementsTableProps) {
   if (loading) {
     return (
-      <div className="card-capitec p-6">
+      <div className="card-capitec p-4 md:p-6">
         <div className="py-12 text-center text-neutral-400">Loading statements…</div>
       </div>
     );
@@ -26,7 +26,7 @@ export function StatementsTable({
 
   if (error) {
     return (
-      <div className="card-capitec p-6">
+      <div className="card-capitec p-4 md:p-6">
         <div className="alert-capitec-error">{error}</div>
       </div>
     );
@@ -34,11 +34,11 @@ export function StatementsTable({
 
   if (statements.length === 0) {
     return (
-      <div className="card-capitec p-6">
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <div className="icon-bg-blue mb-6">
+      <div className="card-capitec p-4 md:p-6">
+        <div className="flex flex-col items-center justify-center py-12 md:py-16 text-center px-4">
+          <div className="icon-bg-blue mb-4 md:mb-6">
             <svg
-              className="h-20 w-20 text-capitec-blue"
+              className="h-12 w-12 md:h-20 md:w-20 text-capitec-blue"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -51,8 +51,8 @@ export function StatementsTable({
               />
             </svg>
           </div>
-          <h3 className="text-xl font-bold mb-2 text-capitec-navy">No statements yet</h3>
-          <p className="text-base max-w-md text-neutral-400">
+          <h3 className="text-lg md:text-xl font-bold mb-2 text-capitec-navy">No statements yet</h3>
+          <p className="text-sm md:text-base max-w-md text-neutral-400">
             Upload your first statement to get started with secure document distribution.
           </p>
         </div>
@@ -61,62 +61,54 @@ export function StatementsTable({
   }
 
   return (
-    <div className="card-capitec p-6">
+    <div className="card-capitec p-4 md:p-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold text-capitec-navy">Your Statements</h2>
-        <button onClick={onRefresh} className="text-sm text-capitec-blue hover:underline">
+        <h2 className="text-lg md:text-xl font-bold text-capitec-navy">Your Statements</h2>
+        <button onClick={onRefresh} className="text-xs md:text-sm text-capitec-blue hover:underline font-semibold">
           Refresh
         </button>
       </div>
 
-      <div className="overflow-x-auto">
+      {/* Desktop Table View */}
+      <div className="hidden lg:block overflow-x-auto">
         <table className="min-w-full text-sm">
           <thead>
-            <tr className="text-left text-neutral-400">
-              <th className="py-3">Period</th>
-              <th className="py-3">Uploaded</th>
-              <th className="py-3">File</th>
-              <th className="py-3">Size</th>
-              <th className="py-3">Status</th>
-              <th className="py-3">Downloads</th>
-              <th className="py-3 text-right">Actions</th>
+            <tr className="text-left text-neutral-400 text-xs uppercase tracking-wider">
+              <th className="py-3 font-semibold">Period</th>
+              <th className="py-3 font-semibold">Uploaded</th>
+              <th className="py-3 font-semibold">File</th>
+              <th className="py-3 font-semibold">Size</th>
+              <th className="py-3 font-semibold">Status</th>
+              <th className="py-3 font-semibold">Downloads</th>
+              <th className="py-3 text-right font-semibold">Actions</th>
             </tr>
           </thead>
           <tbody>
             {statements.map((statement) => (
-              <tr key={statement.id} className="border-t border-neutral-100">
-                <td className="py-3 font-medium">{statement.statementPeriod}</td>
-                <td className="py-3">{new Date(statement.createdAt).toLocaleString()}</td>
-                <td className="py-3">{statement.originalFileName}</td>
-                <td className="py-3">{statement.fileSizeMB} MB</td>
-                <td className="py-3">
+              <tr key={statement.id} className="border-t border-neutral-100 hover:bg-neutral-50 transition-colors">
+                <td className="py-4 font-medium text-capitec-navy">{statement.statementPeriod}</td>
+                <td className="py-4 text-neutral-600">
+                  {new Date(statement.createdAt).toLocaleDateString()}
+                </td>
+                <td className="py-4 text-neutral-600 max-w-xs truncate" title={statement.originalFileName}>
+                  {statement.originalFileName}
+                </td>
+                <td className="py-4 text-neutral-600">{statement.fileSizeMB} MB</td>
+                <td className="py-4">
                   <StatusBadge
                     isExpired={statement.isExpired}
                     isDownloadable={statement.isDownloadable}
                     status={statement.status}
                   />
                 </td>
-                <td className="py-3">{statement.downloadCount}</td>
-                <td className="py-3 text-right">
+                <td className="py-4 text-neutral-600 font-medium">{statement.downloadCount}</td>
+                <td className="py-4 text-right">
                   {statement.isDownloadable ? (
                     <button
                       onClick={() => onGenerateLink(statement)}
-                      className="px-4 py-2 rounded-lg font-semibold transition-all text-sm border-2"
-                      style={{
-                        borderColor: "var(--capitec-blue)",
-                        color: "var(--capitec-blue)",
-                        backgroundColor: "transparent",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = "var(--capitec-blue)";
-                        e.currentTarget.style.color = "white";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = "transparent";
-                        e.currentTarget.style.color = "var(--capitec-blue)";
-                      }}
+                      className="btn-capitec-outline"
                     >
-                      Get download link
+                      Get Link
                     </button>
                   ) : (
                     <span className="text-xs text-neutral-400">Not available</span>
@@ -126,6 +118,55 @@ export function StatementsTable({
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile Card View */}
+      <div className="lg:hidden space-y-4">
+        {statements.map((statement) => (
+          <div key={statement.id} className="border border-neutral-200 rounded-lg p-4 space-y-3">
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="font-bold text-capitec-navy text-base">{statement.statementPeriod}</div>
+                <div className="text-xs text-neutral-400 mt-1">
+                  {new Date(statement.createdAt).toLocaleDateString()}
+                </div>
+              </div>
+              <StatusBadge
+                isExpired={statement.isExpired}
+                isDownloadable={statement.isDownloadable}
+                status={statement.status}
+              />
+            </div>
+            
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-neutral-400">File:</span>
+                <span className="font-medium text-neutral-600 truncate ml-2 max-w-[60%]" title={statement.originalFileName}>
+                  {statement.originalFileName}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-neutral-400">Size:</span>
+                <span className="font-medium text-neutral-600">{statement.fileSizeMB} MB</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-neutral-400">Downloads:</span>
+                <span className="font-medium text-neutral-600">{statement.downloadCount}</span>
+              </div>
+            </div>
+
+            {statement.isDownloadable ? (
+              <button
+                onClick={() => onGenerateLink(statement)}
+                className="btn-capitec-outline w-full"
+              >
+                Get Download Link
+              </button>
+            ) : (
+              <div className="text-center text-xs text-neutral-400 py-2">Not available</div>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   );

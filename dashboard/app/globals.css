@@ -185,6 +185,14 @@ body {
 .bg-capitec-dark-blue { background-color: var(--capitec-dark-blue); }
 .bg-capitec-navy { background-color: var(--capitec-navy); }
 
+/* Additional utility background colors */
+.bg-red-100 { background-color: #FFE5E5; }
+.bg-green-100 { background-color: #E7F7EF; }
+.bg-yellow-100 { background-color: #FFF4E5; }
+
+/* Additional utility text colors */
+.text-yellow-700 { color: #FF9500; }
+
 /* Capitec Gradients */
 .bg-gradient-capitec {
   background: linear-gradient(135deg, var(--capitec-navy) 0%, var(--capitec-dark-blue) 50%, var(--capitec-blue) 100%);
@@ -202,3 +210,39 @@ body {
 .hover-lift:hover {
   transform: translateY(-2px);
 }
+
+/* Button Outline Style */
+.btn-capitec-outline {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  border: 2px solid var(--capitec-blue);
+  color: var(--capitec-blue);
+  background-color: transparent;
+  cursor: pointer;
+}
+
+.btn-capitec-outline:hover:not(:disabled) {
+  background-color: var(--capitec-blue);
+  color: white;
+}
+
+.btn-capitec-outline:disabled {
+  cursor: not-allowed;
+  border-color: var(--neutral-400);
+  color: var(--neutral-400);
+}
+
+/* Success Alert */
+.alert-capitec-success {
+  border-radius: 0.5rem;
+  border: 2px solid var(--capitec-green);
+  padding: 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  background-color: #E7F7EF;
+  color: var(--capitec-green);
+}
+

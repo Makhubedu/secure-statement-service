@@ -33,8 +33,8 @@ FROM node:20-alpine AS production
 # Create app directory
 WORKDIR /app
 
-# Install dumb-init for proper signal handling
-RUN apk add --no-cache dumb-init
+# Install dumb-init and postgresql-client for proper signal handling and database operations
+RUN apk add --no-cache dumb-init postgresql-client
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs
@@ -59,6 +59,9 @@ COPY --chown=nestjs:nodejs tsconfig.json ./
 COPY --chown=nestjs:nodejs tsconfig.migration.json ./
 COPY --chown=nestjs:nodejs data-source.ts ./
 COPY --chown=nestjs:nodejs src ./src
+
+# Copy scripts directory
+COPY --chown=nestjs:nodejs scripts ./scripts
 
 # Copy .env file
 COPY --chown=nestjs:nodejs .env.dev ./.env

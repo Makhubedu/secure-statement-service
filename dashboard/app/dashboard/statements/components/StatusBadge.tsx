@@ -7,10 +7,7 @@ type StatusBadgeProps = {
 export function StatusBadge({ isExpired, isDownloadable, status }: StatusBadgeProps) {
   if (isExpired) {
     return (
-      <span
-        className="px-2 py-1 text-xs font-semibold rounded"
-        style={{ backgroundColor: "#FFE5E5", color: "var(--capitec-red)" }}
-      >
+      <span className="px-2 py-1 text-xs font-semibold rounded bg-red-100 text-capitec-red">
         Expired
       </span>
     );
@@ -18,20 +15,14 @@ export function StatusBadge({ isExpired, isDownloadable, status }: StatusBadgePr
 
   if (isDownloadable) {
     return (
-      <span
-        className="px-2 py-1 text-xs font-semibold rounded"
-        style={{ backgroundColor: "#E7F7EF", color: "var(--capitec-green)" }}
-      >
+      <span className="px-2 py-1 text-xs font-semibold rounded bg-green-100 text-capitec-green">
         Available
       </span>
     );
   }
 
   return (
-    <span
-      className="px-2 py-1 text-xs font-semibold rounded"
-      style={{ backgroundColor: "#FFF4E5", color: "#FF9500" }}
-    >
+    <span className="px-2 py-1 text-xs font-semibold rounded bg-yellow-100 text-yellow-700">
       {status}
     </span>
   );
