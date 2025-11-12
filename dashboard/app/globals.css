@@ -21,8 +21,16 @@ body {
 
 /* Capitec Button Components */
 .btn-capitec-primary {
-  @apply px-8 py-4 rounded-lg text-white font-bold transition-all shadow-capitec text-base;
+  padding: 1rem 2rem;
+  border-radius: 0.5rem;
+  color: white;
+  font-weight: 700;
+  font-size: 1rem;
   background-color: var(--capitec-blue);
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 174, 239, 0.25);
+  border: none;
+  cursor: pointer;
 }
 
 .btn-capitec-primary:hover:not(:disabled) {
@@ -36,16 +44,21 @@ body {
 }
 
 .btn-capitec-primary:disabled {
-  @apply cursor-not-allowed;
+  cursor: not-allowed;
   background-color: var(--neutral-400);
   box-shadow: none;
 }
 
 .btn-capitec-secondary {
-  @apply px-8 py-4 rounded-lg font-bold transition-all text-base border-2;
+  padding: 1rem 2rem;
+  border-radius: 0.5rem;
+  font-weight: 700;
+  font-size: 1rem;
   background-color: white;
   color: var(--capitec-navy);
-  border-color: white;
+  border: 2px solid white;
+  transition: all 0.2s ease;
+  cursor: pointer;
 }
 
 .btn-capitec-secondary:hover {
@@ -57,29 +70,46 @@ body {
 
 /* Capitec Input Components */
 .input-capitec {
-  @apply w-full px-4 py-3 border-2 rounded-lg transition-all;
-  border-color: var(--neutral-100);
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--neutral-100);
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
   font-size: 16px;
 }
 
 .input-capitec:focus {
-  @apply outline-none;
+  outline: none;
   border-color: var(--capitec-blue);
   box-shadow: 0 0 0 3px rgba(0, 174, 239, 0.1);
 }
 
 .label-capitec {
-  @apply block text-sm font-semibold mb-2;
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
   color: var(--capitec-navy);
 }
 
 /* Capitec Card Components */
 .card-capitec {
-  @apply rounded-xl bg-white shadow-lg;
+  border-radius: 0.75rem;
+  background-color: white;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
 .card-capitec-stat {
-  @apply rounded-xl bg-white p-8 shadow-lg border-t-4 transition-transform hover:scale-105;
+  border-radius: 0.75rem;
+  background-color: white;
+  padding: 2rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  border-top: 4px solid;
+  transition: transform 0.2s ease;
+}
+
+.card-capitec-stat:hover {
+  transform: scale(1.05);
 }
 
 .card-capitec-stat-blue {
@@ -96,33 +126,51 @@ body {
 
 /* Capitec Icon Backgrounds */
 .icon-bg-blue {
-  @apply rounded-full p-3;
+  border-radius: 9999px;
+  padding: 0.75rem;
   background-color: #E5F7FF;
 }
 
 .icon-bg-green {
-  @apply rounded-full p-3;
+  border-radius: 9999px;
+  padding: 0.75rem;
   background-color: #E7F7EF;
 }
 
 .icon-bg-red {
-  @apply rounded-full p-3;
+  border-radius: 9999px;
+  padding: 0.75rem;
   background-color: #FEE7E7;
 }
 
 /* Capitec Error/Alert */
 .alert-capitec-error {
-  @apply rounded-lg border-2 p-4 text-sm font-medium;
-  border-color: var(--capitec-red);
+  border-radius: 0.5rem;
+  border: 2px solid var(--capitec-red);
+  padding: 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
   background-color: #FEE7E7;
   color: var(--capitec-red);
 }
 
 /* Capitec Loading Spinner */
 .spinner-capitec {
-  @apply h-12 w-12 animate-spin rounded-full border-4;
-  border-color: var(--neutral-100);
+  height: 3rem;
+  width: 3rem;
+  animation: spin 1s linear infinite;
+  border-radius: 9999px;
+  border: 4px solid var(--neutral-100);
   border-top-color: var(--capitec-blue);
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Capitec Text Colors */
