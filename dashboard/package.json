@@ -9,7 +9,6 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@capitec/omni-components-react": "^0.9.16-esm-alpha",
     "next": "16.0.1",
     "react": "19.2.0",
     "react-dom": "19.2.0"

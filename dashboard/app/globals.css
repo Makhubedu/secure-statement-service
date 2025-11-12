@@ -1,26 +1,156 @@
 @import "tailwindcss";
 
+/* Capitec Brand Colors as CSS Variables */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --capitec-blue: #00AEEF;
+  --capitec-dark-blue: #004C97;
+  --capitec-navy: #002855;
+  --capitec-red: #E31937;
+  --capitec-green: #00A651;
+  --neutral-50: #F5F5F5;
+  --neutral-100: #E0E0E0;
+  --neutral-400: #6B7280;
+  --neutral-900: #1F2937;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--neutral-50);
+  color: var(--neutral-900);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Capitec Button Components */
+.btn-capitec-primary {
+  @apply px-8 py-4 rounded-lg text-white font-bold transition-all shadow-capitec text-base;
+  background-color: var(--capitec-blue);
+}
+
+.btn-capitec-primary:hover:not(:disabled) {
+  background-color: var(--capitec-dark-blue);
+  box-shadow: 0 6px 16px rgba(0, 76, 151, 0.3);
+  transform: translateY(-2px);
+}
+
+.btn-capitec-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-capitec-primary:disabled {
+  @apply cursor-not-allowed;
+  background-color: var(--neutral-400);
+  box-shadow: none;
+}
+
+.btn-capitec-secondary {
+  @apply px-8 py-4 rounded-lg font-bold transition-all text-base border-2;
+  background-color: white;
+  color: var(--capitec-navy);
+  border-color: white;
+}
+
+.btn-capitec-secondary:hover {
+  background-color: transparent;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Capitec Input Components */
+.input-capitec {
+  @apply w-full px-4 py-3 border-2 rounded-lg transition-all;
+  border-color: var(--neutral-100);
+  font-size: 16px;
+}
+
+.input-capitec:focus {
+  @apply outline-none;
+  border-color: var(--capitec-blue);
+  box-shadow: 0 0 0 3px rgba(0, 174, 239, 0.1);
+}
+
+.label-capitec {
+  @apply block text-sm font-semibold mb-2;
+  color: var(--capitec-navy);
+}
+
+/* Capitec Card Components */
+.card-capitec {
+  @apply rounded-xl bg-white shadow-lg;
+}
+
+.card-capitec-stat {
+  @apply rounded-xl bg-white p-8 shadow-lg border-t-4 transition-transform hover:scale-105;
+}
+
+.card-capitec-stat-blue {
+  border-top-color: var(--capitec-blue);
+}
+
+.card-capitec-stat-green {
+  border-top-color: var(--capitec-green);
+}
+
+.card-capitec-stat-red {
+  border-top-color: var(--capitec-red);
+}
+
+/* Capitec Icon Backgrounds */
+.icon-bg-blue {
+  @apply rounded-full p-3;
+  background-color: #E5F7FF;
+}
+
+.icon-bg-green {
+  @apply rounded-full p-3;
+  background-color: #E7F7EF;
+}
+
+.icon-bg-red {
+  @apply rounded-full p-3;
+  background-color: #FEE7E7;
+}
+
+/* Capitec Error/Alert */
+.alert-capitec-error {
+  @apply rounded-lg border-2 p-4 text-sm font-medium;
+  border-color: var(--capitec-red);
+  background-color: #FEE7E7;
+  color: var(--capitec-red);
+}
+
+/* Capitec Loading Spinner */
+.spinner-capitec {
+  @apply h-12 w-12 animate-spin rounded-full border-4;
+  border-color: var(--neutral-100);
+  border-top-color: var(--capitec-blue);
+}
+
+/* Capitec Text Colors */
+.text-capitec-blue { color: var(--capitec-blue); }
+.text-capitec-dark-blue { color: var(--capitec-dark-blue); }
+.text-capitec-navy { color: var(--capitec-navy); }
+.text-capitec-red { color: var(--capitec-red); }
+.text-capitec-green { color: var(--capitec-green); }
+
+/* Capitec Background Colors */
+.bg-capitec-blue { background-color: var(--capitec-blue); }
+.bg-capitec-dark-blue { background-color: var(--capitec-dark-blue); }
+.bg-capitec-navy { background-color: var(--capitec-navy); }
+
+/* Capitec Gradients */
+.bg-gradient-capitec {
+  background: linear-gradient(135deg, var(--capitec-navy) 0%, var(--capitec-dark-blue) 50%, var(--capitec-blue) 100%);
+}
+
+.bg-gradient-capitec-header {
+  background: linear-gradient(135deg, var(--capitec-navy) 0%, var(--capitec-dark-blue) 100%);
+}
+
+/* Utility Classes */
+.hover-lift {
+  transition: transform 0.2s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
 }

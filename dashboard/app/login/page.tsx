@@ -35,7 +35,6 @@ export default function LoginPage() {
       }
 
       if (data.success) {
-        // Store SuperTokens tokens from headers if available
         const frontToken = response.headers.get("front-token");
         const accessToken = response.headers.get("st-access-token");
         const refreshToken = response.headers.get("st-refresh-token");
@@ -50,7 +49,6 @@ export default function LoginPage() {
           sessionStorage.setItem("st-refresh-token", refreshToken);
         }
 
-        // Use window.location for hard redirect to ensure auth context refreshes
         window.location.href = "/dashboard";
       } else {
         setError(data.error || "Login failed");
@@ -59,74 +57,68 @@ export default function LoginPage() {
     } catch (err) {
       setError("An error occurred. Please try again.");
       console.error("Login error:", err);
-    } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-black">
-      <div className="w-full max-w-md space-y-8 rounded-lg border bg-white p-8 shadow-lg dark:bg-zinc-900 dark:border-zinc-800">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-capitec">
+      <div className="w-full max-w-md space-y-6 card-capitec p-8 shadow-2xl">
         <div className="text-center">
-          <h1 className="text-3xl font-bold tracking-tight">Welcome Back</h1>
-          <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-            Sign in to access the Secure Statement Service
+          <div className="mb-4 flex justify-center">
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-capitec-header">
+              <svg className="h-10 w-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </div>
+          </div>
+          <h1 className="text-3xl font-bold text-capitec-navy">Secure Statement Service</h1>
+          <p className="mt-2 text-base text-neutral-400">
+            Sign in to continue
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+        <form onSubmit={handleSubmit} className="mt-6 space-y-5">
           {error && (
-            <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600 dark:border-red-900 dark:bg-red-900/20 dark:text-red-400">
+            <div className="alert-capitec-error">
               {error}
             </div>
           )}
 
-          <div className="space-y-4">
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
-              >
-                Email Address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-zinc-900 placeholder-zinc-400 focus:border-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:focus:border-zinc-500"
-                placeholder="admin@example.com"
-              />
-            </div>
+          <div>
+            <label htmlFor="email" className="label-capitec">
+              Email Address
+            </label>
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="your.email@example.com"
+              required
+              className="input-capitec"
+            />
+          </div>
 
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
-              >
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-zinc-900 placeholder-zinc-400 focus:border-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:focus:border-zinc-500"
-                placeholder="••••••••"
-              />
-            </div>
+          <div>
+            <label htmlFor="password" className="label-capitec">
+              Password
+            </label>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              required
+              className="input-capitec"
+            />
           </div>
 
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full rounded-lg bg-zinc-900 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200"
+            className="btn-capitec-primary w-full"
           >
             {isLoading ? "Signing in..." : "Sign In"}
           </button>
@@ -134,9 +126,9 @@ export default function LoginPage() {
           <div className="text-center text-sm">
             <Link
               href="/"
-              className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+              className="font-semibold transition-colors inline-flex items-center gap-1 text-capitec-blue hover:text-capitec-dark-blue"
             >
-              ← Back to Home
+              <span>←</span> Back to Home
             </Link>
           </div>
         </form>
