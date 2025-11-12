@@ -8,11 +8,32 @@ export async function GET(request: NextRequest) {
     const queryString = searchParams.toString();
     const url = `${API_BASE_URL}/statements${queryString ? `?${queryString}` : ""}`;
 
+    const cookies = request.headers.get("cookie");
+    const frontToken = request.headers.get("front-token");
+    const accessToken = request.headers.get("st-access-token");
+
+    const headers: HeadersInit = {
+      "Content-Type": "application/json",
+    };
+
+    if (accessToken) {
+      headers["Authorization"] = `Bearer ${accessToken}`;
+    }
+
+    if (cookies) {
+      headers["Cookie"] = cookies;
+    }
+    if (frontToken) {
+      headers["front-token"] = frontToken;
+    }
+    if (accessToken) {
+      headers["st-access-token"] = accessToken;
+    }
+
     const response = await fetch(url, {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers,
+      credentials: "include",
     });
 
     const data = await response.json();
@@ -31,12 +52,33 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const url = `${API_BASE_URL}/statements`;
 
+    const cookies = request.headers.get("cookie");
+    const frontToken = request.headers.get("front-token");
+    const accessToken = request.headers.get("st-access-token");
+
+    const headers: HeadersInit = {
+      "Content-Type": "application/json",
+    };
+
+    if (accessToken) {
+      headers["Authorization"] = `Bearer ${accessToken}`;
+    }
+
+    if (cookies) {
+      headers["Cookie"] = cookies;
+    }
+    if (frontToken) {
+      headers["front-token"] = frontToken;
+    }
+    if (accessToken) {
+      headers["st-access-token"] = accessToken;
+    }
+
     const response = await fetch(url, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers,
       body: JSON.stringify(body),
+      credentials: "include",
     });
 
     const data = await response.json();

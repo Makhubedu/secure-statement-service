@@ -2,11 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 
 const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:3000";
 
-export async function GET(request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const queryString = searchParams.toString();
-    const url = `${API_BASE_URL}/statements/download-logs${queryString ? `?${queryString}` : ""}`;
+    const url = `${API_BASE_URL}/auth/logout`;
 
     const cookies = request.headers.get("cookie");
     const frontToken = request.headers.get("front-token");
@@ -31,17 +29,25 @@ export async function GET(request: NextRequest) {
     }
 
     const response = await fetch(url, {
-      method: "GET",
+      method: "POST",
       headers,
       credentials: "include",
     });
 
     const data = await response.json();
-    return NextResponse.json(data, { status: response.status });
+
+    const setCookieHeaders = response.headers.get("set-cookie");
+    const nextResponse = NextResponse.json(data, { status: response.status });
+
+    if (setCookieHeaders) {
+      nextResponse.headers.set("Set-Cookie", setCookieHeaders);
+    }
+
+    return nextResponse;
   } catch (error) {
-    console.error("Error fetching download logs:", error);
+    console.error("Logout error:", error);
     return NextResponse.json(
-      { error: "Failed to fetch download logs" },
+      { success: false, error: "Logout failed" },
       { status: 500 }
     );
   }
